@@ -1,0 +1,28 @@
+<div class="kpi-card card-surface">
+  @if (loading()) {
+    <div class="content-loading-state content-loading-state--compact" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading {{ label().toLowerCase() }}…</span>
+    </div>
+  } @else if (error()) {
+    <div class="kpi-card__error">
+      <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+      <button type="button" class="btn-outline" (click)="retry.emit()">Retry</button>
+    </div>
+  } @else {
+    <div class="kpi-card__header">
+      <span class="kpi-card__label">{{ label() }}</span>
+      <span class="kpi-card__icon-wrap" aria-hidden="true">
+        <i [class]="'bi ' + icon()"></i>
+      </span>
+    </div>
+    <div class="kpi-card__value">{{ value() ?? '—' }}</div>
+    @if (changePercent() !== null) {
+      <div [class]="'kpi-card__trend ' + trendClass()">
+        <i [class]="'bi ' + trendIcon()" aria-hidden="true"></i>
+        <span>{{ changePercent() | number:'1.1-1' }}% vs last month</span>
+      </div>
+    }
+  }
+</div>

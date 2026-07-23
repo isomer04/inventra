@@ -1,0 +1,98 @@
+<nav
+  class="sidebar"
+  [class.sidebar--collapsed]="collapsed()"
+  aria-label="Main navigation"
+  id="sidebar">
+
+  <div class="sidebar__header">
+    <a routerLink="/dashboard" class="sidebar__logo" [attr.aria-label]="'Inventra home'">
+      <i class="bi bi-box-seam sidebar__logo-icon" aria-hidden="true"></i>
+      @if (!collapsed()) {
+        <span class="sidebar__logo-text">Inventra</span>
+      }
+    </a>
+
+    <button
+      type="button"
+      class="sidebar__toggle"
+      (click)="onToggle()"
+      [attr.aria-expanded]="!collapsed()"
+      aria-controls="sidebar"
+      [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
+      <i
+        class="bi"
+        [class.bi-chevron-right]="collapsed()"
+        [class.bi-chevron-left]="!collapsed()"
+        aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="sidebar__nav">
+    @for (section of navSections; track section.label) {
+      <div class="sidebar__section">
+        @if (!collapsed()) {
+          <span class="sidebar__section-label">{{ section.label }}</span>
+        }
+
+        @for (item of section.items; track item.route) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="sidebar__nav-item--active"
+            #rla="routerLinkActive"
+            [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+            class="sidebar__nav-item"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+            [attr.aria-label]="collapsed() ? item.label : null"
+            [title]="collapsed() ? item.label : ''">
+            <i [class]="'bi sidebar__nav-icon ' + item.icon" aria-hidden="true"></i>
+            @if (!collapsed()) {
+              <span class="sidebar__nav-label">{{ item.label }}</span>
+            }
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="sidebar__footer">
+    @if (currentUser(); as user) {
+      <div class="sidebar__user">
+        <button
+          type="button"
+          class="sidebar__user-btn"
+          (click)="toggleUserDropdown()"
+          [attr.aria-expanded]="userDropdownOpen()"
+          aria-haspopup="true"
+          [attr.aria-label]="'User menu for ' + (user.firstName || user.email)">
+          <span class="sidebar__avatar" aria-hidden="true">
+            {{ ((user.firstName[0] || user.email[0] || '?') + (user.lastName[0] || '')) | uppercase }}
+          </span>
+          @if (!collapsed()) {
+            <span class="sidebar__user-name">{{ user.firstName || user.email }}</span>
+          }
+        </button>
+
+        @if (userDropdownOpen()) {
+          <div class="sidebar__user-dropdown" role="menu">
+            <div class="sidebar__user-info">
+              <div class="sidebar__user-full-name">{{ user.firstName }} {{ user.lastName }}</div>
+              <div class="sidebar__user-email">{{ user.email }}</div>
+              <span class="status-badge status-badge--processing sidebar__role-badge">
+                {{ user.role }}
+              </span>
+            </div>
+            <hr class="sidebar__divider" />
+            <button
+              type="button"
+              class="sidebar__dropdown-item"
+              role="menuitem"
+              (click)="logout()">
+              <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+              Logout
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</nav>

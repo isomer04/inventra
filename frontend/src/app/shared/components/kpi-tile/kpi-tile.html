@@ -1,0 +1,46 @@
+<div
+  class="kpi-tile kpi-tile--{{ variant() }}"
+  [class.kpi-tile--loading]="loading()"
+  [attr.role]="link() ? null : 'region'"
+  [attr.aria-label]="label()">
+
+  @if (link()) {
+    <a [routerLink]="link()" class="kpi-tile__inner kpi-tile__inner--link" [attr.aria-label]="label() + ': ' + (value() ?? 'loading')">
+      <ng-container *ngTemplateOutlet="tileContent"></ng-container>
+    </a>
+  } @else {
+    <div class="kpi-tile__inner">
+      <ng-container *ngTemplateOutlet="tileContent"></ng-container>
+    </div>
+  }
+</div>
+
+<ng-template #tileContent>
+  <div class="kpi-tile__icon" aria-hidden="true">
+    <i class="bi {{ icon() }}"></i>
+  </div>
+
+  <div class="kpi-tile__body">
+    <div class="kpi-tile__label">{{ label() }}</div>
+
+    @if (loading()) {
+      <div class="content-loading-state content-loading-state--compact" role="status" aria-live="polite">
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        <span>Loading {{ label().toLowerCase() }}…</span>
+      </div>
+    } @else {
+      <div class="kpi-tile__value" [attr.aria-label]="label() + ' value: ' + value()">
+        {{ value() ?? '—' }}
+      </div>
+      @if (subValue()) {
+        <div class="kpi-tile__sub">{{ subValue() }}</div>
+      }
+    }
+  </div>
+
+  @if (badge() && !loading()) {
+    <span class="badge bg-{{ badgeVariant() }} kpi-tile__badge" [attr.aria-label]="badge()">
+      {{ badge() }}
+    </span>
+  }
+</ng-template>

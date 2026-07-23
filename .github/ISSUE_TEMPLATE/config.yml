@@ -1,0 +1,13 @@
+# Disable blank issues — all issues must use a template.
+# Security vulnerabilities must be reported privately via SECURITY.md.
+blank_issues_enabled: false
+
+contact_links:
+  - name: 🔒 Report a Security Vulnerability
+    url: https://github.com/isomer04/inventra/security/advisories/new
+    about: |
+      Please report security vulnerabilities privately.
+      Do NOT open a public issue for security bugs.
+  - name: 📖 Documentation
+    url: https://github.com/isomer04/inventra#readme
+    about: Check the README for setup and usage documentation.

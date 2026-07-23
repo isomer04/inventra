@@ -1,0 +1,140 @@
+<div class="page-container">
+
+
+  <div class="page-header">
+    <h1 class="page-title">Customers</h1>
+    <a routerLink="/customers/new" class="btn-accent">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i>
+      Add Customer
+    </a>
+  </div>
+
+
+  <div class="table-toolbar">
+    <div class="search-input-wrapper">
+      <i class="bi bi-search search-icon" aria-hidden="true"></i>
+      <input
+        type="search"
+        placeholder="Search by name or email…"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        (ngModelChange)="onSearch()"
+        aria-label="Search customers"
+      />
+    </div>
+
+    <select
+      class="form-select toolbar-select"
+      [(ngModel)]="selectedStatus"
+      (change)="onFilterChange()"
+      aria-label="Filter by status">
+      <option value="">All Statuses</option>
+      <option [value]="CustomerStatus.ACTIVE">Active</option>
+      <option [value]="CustomerStatus.INACTIVE">Inactive</option>
+    </select>
+
+    @if (searchTerm || selectedStatus) {
+      <button type="button" class="btn-outline" (click)="clearFilters()">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        Clear
+      </button>
+    }
+  </div>
+
+
+  <div class="data-table-wrapper">
+    <table class="data-table" role="table" aria-label="Customers list">
+      <thead>
+        <tr>
+          <th role="columnheader" scope="col">Name</th>
+          <th role="columnheader" scope="col">Email</th>
+          <th role="columnheader" scope="col">Phone</th>
+          <th role="columnheader" scope="col">Status</th>
+          <th role="columnheader" scope="col" class="th-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr class="table-loading-row" role="row" aria-busy="true">
+            <td role="cell" colspan="5">
+              <div class="table-loading-state" role="status">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span>Loading customers…</span>
+              </div>
+            </td>
+          </tr>
+        } @else if (customers().length === 0) {
+          <tr role="row">
+            <td role="cell" colspan="5">
+              <div class="table-empty-state">
+                <div class="empty-icon"><i class="bi bi-people" aria-hidden="true"></i></div>
+                <div class="empty-title">No customers found</div>
+                <div class="empty-desc">
+                  @if (searchTerm || selectedStatus) {
+                    Try adjusting your search or filters.
+                  } @else {
+                    Add your first customer to get started.
+                  }
+                </div>
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (customer of customers(); track customer.id) {
+            <tr role="row">
+              <td role="cell">
+                <a [routerLink]="['/customers', customer.id]" class="customer-name-link">{{ customer.name }}</a>
+              </td>
+              <td role="cell">{{ customer.email || '—' }}</td>
+              <td role="cell">{{ customer.phone || '—' }}</td>
+              <td role="cell">
+                <app-status-badge [status]="customer.status.toLowerCase()"></app-status-badge>
+              </td>
+              <td role="cell" class="td-actions">
+                <a [routerLink]="['/customers', customer.id]" class="action-btn" title="View" aria-label="View customer">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </a>
+                <a [routerLink]="['/customers', customer.id, 'edit']" class="action-btn" title="Edit" aria-label="Edit customer">
+                  <i class="bi bi-pencil" aria-hidden="true"></i>
+                </a>
+                <button type="button" class="action-btn action-btn--danger" (click)="requestDelete(customer)" title="Delete" aria-label="Delete customer">
+                  <i class="bi bi-trash" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (!loading() && totalPages() > 1) {
+      <div class="table-pagination">
+        <span class="pagination-info">
+          {{ currentPage() * pageSize + 1 }}–{{ Math.min((currentPage() + 1) * pageSize, totalElements()) }}
+          of {{ totalElements() }} customers
+        </span>
+        <div class="pagination-controls">
+          <button type="button" class="pagination-btn" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 0" aria-label="Previous page">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <span class="pagination-page">{{ currentPage() + 1 }} / {{ totalPages() }}</span>
+          <button type="button" class="pagination-btn" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages() - 1" aria-label="Next page">
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>
+
+
+@if (pendingDeleteCustomer(); as customer) {
+  <app-confirmation-dialog
+    title="Delete Customer"
+    [message]="'Are you sure you want to delete \'' + customer.name + '\'? This action cannot be undone.'"
+    confirmLabel="Delete"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()">
+  </app-confirmation-dialog>
+}

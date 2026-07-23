@@ -1,0 +1,18 @@
+# Development profile — loaded alongside application.yml when SPRING_PROFILES_ACTIVE=dev
+# Adds seed data migrations and enables verbose logging for local development.
+spring:
+  flyway:
+    # Include demo seed data in dev so the admin@demo.com account is available.
+    locations: classpath:db/migration,classpath:db/seed
+    # V6 checksum is stable (file content preserved from original).
+    # If a developer's DB already has V6 applied from the old migration path,
+    # Flyway will validate it against the seed copy — checksums must match.
+    # If you hit a checksum error, run: flyway repair
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.inventra: DEBUG
+    org.springframework.security: DEBUG
+    org.flywaydb: INFO

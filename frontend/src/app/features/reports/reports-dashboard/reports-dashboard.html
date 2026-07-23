@@ -1,0 +1,61 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Reports</h1>
+      <p style="margin:0;color:var(--color-text-muted);font-size:var(--font-size-sm);">
+        View analytics and insights about your inventory and orders
+      </p>
+    </div>
+  </div>
+
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--space-6);margin-bottom:var(--space-12);">
+    @for (report of reports; track report.route) {
+      <a [routerLink]="report.route" style="text-decoration:none;">
+        <div class="card-surface" style="height:100%;transition:box-shadow 150ms ease;cursor:pointer;"
+          onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow='var(--shadow-sm)'">
+          <div style="width:48px;height:48px;background:var(--color-accent-subtle);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:var(--space-4);">
+            {{ report.icon }}
+          </div>
+          <h3 style="font-size:var(--font-size-base);font-weight:600;color:var(--color-text);margin:0 0 var(--space-2);">
+            {{ report.title }}
+          </h3>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin:0 0 var(--space-4);">
+            {{ report.description }}
+          </p>
+          <span style="font-size:var(--font-size-sm);font-weight:600;color:var(--color-accent);">
+            View →
+          </span>
+        </div>
+      </a>
+    }
+  </div>
+
+
+  <div class="card-surface" style="max-width:720px;margin:0 auto;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:var(--space-4);">📈</div>
+    <h3 style="font-size:var(--font-size-xl);font-weight:600;margin:0 0 var(--space-3);">Business Intelligence</h3>
+    <p style="color:var(--color-text-muted);font-size:var(--font-size-sm);max-width:480px;margin:0 auto var(--space-8);">
+      Use these reports to gain insights into inventory levels, stock movements, order performance, and product sales.
+      All data is filtered to your tenant and updated in real-time.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);">
+      <div style="padding:var(--space-4);">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2);">⚡</div>
+        <div style="font-weight:600;font-size:var(--font-size-sm);margin-bottom:var(--space-1);">Real-Time Data</div>
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);">All reports show current data</div>
+      </div>
+      <div style="padding:var(--space-4);">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2);">🔍</div>
+        <div style="font-weight:600;font-size:var(--font-size-sm);margin-bottom:var(--space-1);">Flexible Filters</div>
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Filter by date, type, and more</div>
+      </div>
+      <div style="padding:var(--space-4);">
+        <div style="font-size:1.5rem;margin-bottom:var(--space-2);">📥</div>
+        <div style="font-weight:600;font-size:var(--font-size-sm);margin-bottom:var(--space-1);">Export Ready</div>
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Data ready for export (future)</div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,39 @@
+<div class="low-stock card-surface">
+  <div class="low-stock__header">
+    <h2 class="low-stock__title">Low Stock Alerts</h2>
+    <a routerLink="/inventory" class="low-stock__link">View inventory</a>
+  </div>
+
+  @if (loading()) {
+    <div class="content-loading-state" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading low-stock alerts…</span>
+    </div>
+  } @else if (alertItems().length === 0) {
+    <div class="low-stock__empty">
+      <i class="bi bi-check-circle-fill low-stock__empty-icon" aria-hidden="true"></i>
+      <p class="low-stock__empty-text">All stock levels are healthy</p>
+    </div>
+  } @else {
+    <ul class="low-stock__list" aria-label="Low stock products">
+      @for (item of alertItems(); track item.id) {
+        <li class="low-stock__item">
+          <div class="low-stock__item-info">
+            <span class="low-stock__item-name">{{ item.productName }}</span>
+            <span class="low-stock__item-sku">{{ item.productSku }}</span>
+          </div>
+          <div class="low-stock__item-qty">
+            <span
+              class="low-stock__qty-badge"
+              [class.low-stock__qty-badge--critical]="item.quantityOnHand === 0">
+              {{ item.quantityOnHand }}
+            </span>
+            <a [routerLink]="['/inventory']" class="low-stock__item-link" aria-label="View in inventory">
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

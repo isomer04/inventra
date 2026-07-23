@@ -1,0 +1,102 @@
+spring:
+  application:
+    name: inventra-api
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/inventra?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+    # Dev convenience defaults — work with the local dev Docker Compose out of the box.
+    # In production DB_USERNAME and DB_PASSWORD are required env vars enforced by
+    # docker-compose.prod.yml (:? syntax — fails fast if unset).
+    username: ${DB_USERNAME:inventra}
+    password: ${DB_PASSWORD:inventra}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # HikariCP connection pool tuning.
+    # MySQL default wait_timeout is 8 hours (28800 s). Without keepalive, connections
+    # idle for longer than wait_timeout are silently dropped by the server, causing
+    # "Communications link failure" on the next use.
+    #
+    # keepalive-time  : send a lightweight keepalive query every 2 min on idle connections.
+    #                   Must be < MySQL wait_timeout (28800 s) AND < max-lifetime.
+    # max-lifetime    : evict and replace a connection after 25 min regardless of use.
+    #                   Must be < MySQL wait_timeout. Prevents stale-connection accumulation.
+    # connection-timeout: max time to wait for a connection from the pool. 20 s is
+    #                   generous; clients receive a 500 rather than hanging indefinitely.
+    # minimum-idle    : allow the pool to shrink during quiet periods (saves DB connections).
+    # maximum-pool-size: default Spring Boot value is 10; explicit for visibility.
+    hikari:
+      keepalive-time: 120000        # 2 minutes (ms)
+      max-lifetime: 1500000         # 25 minutes (ms)
+      connection-timeout: 20000     # 20 seconds (ms)
+      minimum-idle: 2
+      maximum-pool-size: 10
+      pool-name: inventra-pool
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    # Default: only versioned migrations (no seed data).
+    # The dev profile overrides this to also include classpath:db/seed.
+    locations: classpath:db/migration
+  # Cap the maximum page size clients can request.
+  # Without this, a caller can pass ?size=100000 and force the DB to return
+  # all rows in one query. Spring Data will honour the requested size up to
+  # this ceiling; requests above it are silently clamped to max-page-size.
+  data:
+    web:
+      pageable:
+        max-page-size: 200
+        default-page-size: 20
+
+server:
+  port: 8080
+  # Limit request body size to prevent memory-exhaustion DoS.
+  # 2MB is appropriate for a JSON API with no file uploads.
+  # The nginx client_max_body_size in nginx.conf provides the outer guard.
+  # connection-timeout prevents slow clients from holding
+  # Tomcat NIO threads indefinitely. 20 s gives legitimate clients ample time
+  # to send headers and body; bots / slow-loris attackers are evicted promptly.
+  tomcat:
+    max-swallow-size: 2097152   # 2MB — reject oversized bodies
+    max-http-form-post-size: 2097152
+    connection-timeout: 20000   # 20 s — evict idle/slow client connections
+  servlet:
+    multipart:
+      max-request-size: 2MB
+      max-file-size: 1MB
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry-ms: ${JWT_ACCESS_EXPIRY_MS:900000}       # 15 minutes
+    refresh-token-expiry-ms: ${JWT_REFRESH_EXPIRY_MS:604800000}  # 7 days
+  # Data retention policy for audit log PII.
+  # actor_email in audit_log is anonymised after this many days.
+  # Minimum enforced by AuditLogRetentionService: 90 days.
+  # Override in production with APP_AUDIT_RETENTION_DAYS env var.
+  audit:
+    retention-days: ${APP_AUDIT_RETENTION_DAYS:365}
+
+# Allowed CORS origins — override with CORS_ALLOWED_ORIGINS env var in production.
+# Example: CORS_ALLOWED_ORIGINS=https://app.yourdomain.com
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never

@@ -1,0 +1,46 @@
+# .gitattributes — normalise line endings and mark binary files.
+# Reference: https://git-scm.com/docs/gitattributes
+
+# Default: normalise all text files to LF in the repo, check out as LF.
+* text=auto eol=lf
+
+# Explicitly LF — these must not get CRLF even on Windows checkouts.
+*.java      text eol=lf
+*.ts        text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.scss      text eol=lf
+*.js        text eol=lf
+*.mjs       text eol=lf
+*.json      text eol=lf
+*.jsonc     text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.xml       text eol=lf
+*.sql       text eol=lf
+*.md        text eol=lf
+*.sh        text eol=lf
+*.conf      text eol=lf
+*.properties text eol=lf
+*.txt       text eol=lf
+Dockerfile  text eol=lf
+
+# Windows-specific scripts — keep CRLF on Windows checkouts.
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binary files — never diff or convert.
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.svg       text eol=lf
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.eot       binary
+*.jar       binary
+*.zip       binary
+*.gz        binary

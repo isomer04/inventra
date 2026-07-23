@@ -1,0 +1,124 @@
+name: CI
+
+# Runs on every push to main and on every pull request targeting main.
+# Enforces: build, test, SAST (SpotBugs + Find Security Bugs), SCA (OWASP DC),
+# and frontend lint + build.
+#
+# Action pinning: all actions are pinned to a specific commit SHA.
+# Dependabot (github-actions ecosystem, configured in dependabot.yml) will
+# open PRs to update these SHAs when new versions are released.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  backend:
+    name: Backend — Build, Test & SAST
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Java 25
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          java-version: "25"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Verify public auth endpoint contract
+        run: python ../scripts/verify-public-auth-contract.py
+
+      - name: Build and run unit tests
+        run: mvn -B verify -DskipITs
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+          retention-days: 14
+
+      - name: Run SpotBugs SAST (Find Security Bugs)
+        # SpotBugs is bound to the verify phase in pom.xml — already ran above.
+        # This step is explicit for visibility in the CI summary.
+        run: echo "SpotBugs ran as part of mvn verify above — see build output"
+
+  frontend:
+    name: Frontend — Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install the declared npm version
+        # setup-node installs the npm bundled with Node. Install the project's pinned
+        # npm release so CI validates package-lock.json with the same resolver used to
+        # generate it.
+        run: npm install --global npm@11.6.2
+
+      - name: Install dependencies
+        # npm ci installs strictly from package-lock.json and fails on drift, so what CI
+        # tests is exactly what the lockfile pins. `npm install` would silently rewrite the
+        # lockfile to satisfy a mismatch, which defeats the point of pinning and sits badly
+        # next to the SHA-pinned actions and digest-pinned images used everywhere else.
+        # A Dependabot PR with a stale lockfile should be fixed in that PR, not worked
+        # around by weakening every build.
+        run: npm ci --ignore-scripts
+
+      - name: Run tests with coverage
+        run: npm run test:coverage:ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (production)
+        run: npm run build:prod
+
+      - name: Upload Vitest coverage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: vitest-coverage
+          path: frontend/coverage/
+          retention-days: 14
+
+  docker-build:
+    name: Docker — Build smoke test
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    # Only run on PRs and main pushes — skip on forks to avoid credential issues
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build backend image
+        run: docker build -t inventra-backend:ci ./backend
+
+      - name: Build frontend image
+        run: docker build -t inventra-frontend:ci ./frontend

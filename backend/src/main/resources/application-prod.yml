@@ -1,0 +1,31 @@
+# Production profile — loaded alongside application.yml when SPRING_PROFILES_ACTIVE=prod
+# Overrides dev-friendly defaults with secure, production-hardened settings.
+spring:
+  datasource:
+    # Override to enforce SSL — supply the full URL via DB_URL env var
+    url: ${DB_URL:?DB_URL must be set in production — include useSSL=true}
+
+  flyway:
+    # Only run versioned migrations — seed data is intentionally excluded from production.
+    locations: classpath:db/migration
+    # V6 was previously in db/migration and ran on all environments before the
+    # dev/prod split. Tell Flyway to ignore the now-missing V6 entry rather than
+    # failing with "applied migration not resolved locally".
+    ignore-migration-patterns: "*:Missing"
+
+# Disable API docs entirely in production (SecurityConfig also blocks the URLs,
+# but belt-and-suspenders is appropriate for documentation endpoints)
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.inventra: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} - %msg%n"

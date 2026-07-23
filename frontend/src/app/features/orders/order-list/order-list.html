@@ -1,0 +1,165 @@
+<div class="page-container">
+
+
+  <div class="page-header">
+    <h1 class="page-title">Orders</h1>
+    <a routerLink="/orders/new" class="btn-accent">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i>
+      Create Order
+    </a>
+  </div>
+
+
+  <div class="table-toolbar">
+    <select
+      class="form-select toolbar-select"
+      [(ngModel)]="selectedStatus"
+      (change)="onFilterChange()"
+      aria-label="Filter by status">
+      <option value="">All Statuses</option>
+      <option [value]="OrderStatus.DRAFT">Draft</option>
+      <option [value]="OrderStatus.SUBMITTED">Submitted</option>
+      <option [value]="OrderStatus.APPROVED">Approved</option>
+      <option [value]="OrderStatus.PICKING">Picking</option>
+      <option [value]="OrderStatus.SHIPPED">Shipped</option>
+      <option [value]="OrderStatus.DELIVERED">Delivered</option>
+      <option [value]="OrderStatus.REJECTED">Rejected</option>
+      <option [value]="OrderStatus.CANCELLED">Cancelled</option>
+    </select>
+
+    <select
+      class="form-select toolbar-select"
+      [(ngModel)]="selectedCustomerId"
+      (change)="onFilterChange()"
+      aria-label="Filter by customer">
+      <option value="">All Customers</option>
+      @for (entry of customers() | keyvalue; track entry.key) {
+        <option [value]="entry.key">{{ entry.value.name }}</option>
+      }
+    </select>
+
+    <div class="toolbar-date-wrapper">
+      <input
+        type="date"
+        class="form-input toolbar-date"
+        [(ngModel)]="startDate"
+        (change)="onFilterChange()"
+        aria-label="Start date" />
+      <i class="bi bi-calendar3 toolbar-date-icon" aria-hidden="true"></i>
+    </div>
+
+    <div class="toolbar-date-wrapper">
+      <input
+        type="date"
+        class="form-input toolbar-date"
+        [(ngModel)]="endDate"
+        (change)="onFilterChange()"
+        aria-label="End date" />
+      <i class="bi bi-calendar3 toolbar-date-icon" aria-hidden="true"></i>
+    </div>
+
+    @if (selectedStatus || selectedCustomerId || startDate || endDate) {
+      <button type="button" class="btn-outline" (click)="clearFilters()">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        Clear
+      </button>
+    }
+  </div>
+
+
+  <div class="data-table-wrapper">
+    <table class="data-table" role="table" aria-label="Orders list">
+      <thead>
+        <tr>
+          <th role="columnheader" scope="col">Order #</th>
+          <th role="columnheader" scope="col">Customer</th>
+          <th role="columnheader" scope="col">Date</th>
+          <th role="columnheader" scope="col">Total</th>
+          <th role="columnheader" scope="col">Status</th>
+          <th role="columnheader" scope="col" class="th-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr class="table-loading-row" role="row" aria-busy="true">
+            <td role="cell" colspan="6">
+              <div class="table-loading-state" role="status">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span>Loading orders…</span>
+              </div>
+            </td>
+          </tr>
+        } @else if (orders().length === 0) {
+          <tr role="row">
+            <td role="cell" colspan="6">
+              <div class="table-empty-state">
+                <div class="empty-icon"><i class="bi bi-cart-x" aria-hidden="true"></i></div>
+                <div class="empty-title">No orders match your filters</div>
+                <div class="empty-desc">Try adjusting or clearing your filters.</div>
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (order of orders(); track order.id) {
+            <tr role="row">
+              <td role="cell">
+                <a [routerLink]="['/orders', order.id]" class="table-link">{{ order.orderNumber }}</a>
+              </td>
+              <td role="cell">{{ order.customerName }}</td>
+              <td role="cell">{{ order.createdAt | date:'MMM d, y' }}</td>
+              <td role="cell">{{ order.totalAmount | currency }}</td>
+              <td role="cell">
+                <app-status-badge [status]="order.status.toLowerCase()"></app-status-badge>
+              </td>
+              <td role="cell" class="td-actions">
+                <a [routerLink]="['/orders', order.id]" class="action-btn" title="View" aria-label="View order">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </a>
+                @if (canEdit(order)) {
+                  <a [routerLink]="['/orders', order.id, 'edit']" class="action-btn" title="Edit" aria-label="Edit order">
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                  </a>
+                }
+                @if (canDelete(order)) {
+                  <button type="button" class="action-btn action-btn--danger" (click)="requestDelete(order)" title="Delete" aria-label="Delete order">
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (!loading() && totalPages() > 1) {
+      <div class="table-pagination">
+        <span class="pagination-info">
+          {{ currentPage() * pageSize + 1 }}–{{ Math.min((currentPage() + 1) * pageSize, totalElements()) }}
+          of {{ totalElements() }} orders
+        </span>
+        <div class="pagination-controls">
+          <button type="button" class="pagination-btn" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 0" aria-label="Previous page">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <span class="pagination-page">{{ currentPage() + 1 }} / {{ totalPages() }}</span>
+          <button type="button" class="pagination-btn" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages() - 1" aria-label="Next page">
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>
+
+
+@if (pendingDeleteOrder(); as order) {
+  <app-confirmation-dialog
+    title="Delete Order"
+    [message]="'Are you sure you want to delete order ' + order.orderNumber + '? This action cannot be undone.'"
+    confirmLabel="Delete"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()">
+  </app-confirmation-dialog>
+}

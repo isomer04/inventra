@@ -1,0 +1,45 @@
+<div class="recent-orders card-surface">
+  <div class="recent-orders__header">
+    <h2 class="recent-orders__title">Recent Orders</h2>
+    <a routerLink="/orders" class="recent-orders__view-all">View all</a>
+  </div>
+
+  @if (displayOrders().length === 0) {
+    <div class="table-empty-state">
+      <div class="empty-icon"><i class="bi bi-cart-x" aria-hidden="true"></i></div>
+      <div class="empty-title">No recent orders</div>
+      <div class="empty-desc">Orders will appear here as they come in.</div>
+    </div>
+  } @else {
+    <div class="data-table-wrapper">
+      <table class="data-table" role="table" aria-label="Recent orders">
+        <thead>
+          <tr>
+            <th role="columnheader" scope="col">Order</th>
+            <th role="columnheader" scope="col">Customer</th>
+            <th role="columnheader" scope="col">Date</th>
+            <th role="columnheader" scope="col">Total</th>
+            <th role="columnheader" scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of displayOrders(); track order.id) {
+            <tr role="row">
+              <td role="cell">
+                <a [routerLink]="['/orders', order.id]" class="table-link">
+                  {{ order.orderNumber }}
+                </a>
+              </td>
+              <td role="cell">{{ order.customerName }}</td>
+              <td role="cell">{{ order.createdAt | date:'MMM d, y' }}</td>
+              <td role="cell">{{ order.totalAmount | currency }}</td>
+              <td role="cell">
+                <app-status-badge [status]="order.status.toLowerCase()"></app-status-badge>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

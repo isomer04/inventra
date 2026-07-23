@@ -1,0 +1,166 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <h1 class="page-title">Stock Movement History</h1>
+    <a routerLink="/inventory" class="btn-outline">&#8592; Back to Inventory</a>
+  </div>
+
+
+  <div class="table-toolbar" style="margin-bottom: var(--space-4);">
+    <div class="form-field" style="margin-bottom:0; flex:1; min-width:160px;">
+      <label for="type" class="form-label">Movement Type</label>
+      <select
+        id="type"
+        class="form-select"
+        [(ngModel)]="selectedType"
+        (change)="onFilterChange()"
+      >
+        <option value="">All Types</option>
+        <option [value]="MovementType.RECEIPT">Receipt</option>
+        <option [value]="MovementType.ADJUSTMENT">Adjustment</option>
+        <option [value]="MovementType.RESERVATION">Reservation</option>
+        <option [value]="MovementType.RESERVATION_RELEASE">Reservation Release</option>
+        <option [value]="MovementType.DEDUCTION">Deduction</option>
+      </select>
+    </div>
+
+    <div class="form-field" style="margin-bottom:0; flex:1; min-width:140px;">
+      <label for="startDate" class="form-label">Start Date</label>
+      <input
+        type="date"
+        id="startDate"
+        class="form-input"
+        [(ngModel)]="startDate"
+        (change)="onFilterChange()"
+      />
+    </div>
+
+    <div class="form-field" style="margin-bottom:0; flex:1; min-width:140px;">
+      <label for="endDate" class="form-label">End Date</label>
+      <input
+        type="date"
+        id="endDate"
+        class="form-input"
+        [(ngModel)]="endDate"
+        (change)="onFilterChange()"
+      />
+    </div>
+
+    <div style="align-self:flex-end;">
+      <button class="btn-outline" (click)="clearFilters()">Clear</button>
+    </div>
+  </div>
+
+
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date &amp; Time</th>
+          <th>Product</th>
+          <th>Type</th>
+          <th style="text-align:right;">Quantity</th>
+          <th>Notes</th>
+          <th>Reference</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr class="table-loading-row" aria-busy="true">
+            <td colspan="6">
+              <div class="table-loading-state" role="status">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span>Loading movement history…</span>
+              </div>
+            </td>
+          </tr>
+        } @else if (movements().length === 0) {
+          <tr>
+            <td colspan="6">
+              <div class="table-empty-state">
+                <div class="empty-icon">🕐</div>
+                <div class="empty-title">No Movement History</div>
+                <div class="empty-desc">
+                  @if (selectedType || startDate || endDate) {
+                    No movements match your filters. Try adjusting your search criteria.
+                  } @else {
+                    Stock movements will appear here once inventory operations are performed.
+                  }
+                </div>
+                @if (selectedType || startDate || endDate) {
+                  <button class="btn-outline" style="margin-top:var(--space-4)" (click)="clearFilters()">Clear Filters</button>
+                }
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (movement of movements(); track movement.id) {
+            <tr>
+              <td style="white-space:nowrap; color:var(--color-text-muted); font-size:var(--font-size-sm);">
+                {{ movement.createdAt | date:'short' }}
+              </td>
+              <td>
+                @if (getProduct(movement.productId); as product) {
+                  <div>
+                    <a [routerLink]="['/products', product.id]" style="font-weight:500; color:var(--color-accent);">
+                      {{ product.name }}
+                    </a>
+                    <div style="font-size:var(--font-size-xs); color:var(--color-text-muted);">
+                      <code>{{ product.sku }}</code>
+                    </div>
+                  </div>
+                } @else {
+                  <span class="inline-loading-text">Loading product…</span>
+                }
+              </td>
+              <td>
+                <app-status-badge [status]="movementTypeToStatus(movement.type)" />
+              </td>
+              <td style="text-align:right;">
+                <strong [class]="getQuantityClass(movement.quantity)"
+                  [style.color]="movement.quantity > 0 ? 'var(--color-success)' : 'var(--color-error)'">
+                  {{ movement.quantity > 0 ? '+' : '' }}{{ movement.quantity }}
+                </strong>
+              </td>
+              <td style="font-size:var(--font-size-sm); color:var(--color-text-muted);">
+                {{ movement.notes || '—' }}
+              </td>
+              <td>
+                @if (movement.referenceId && movement.referenceType === 'ORDER') {
+                  <a [routerLink]="['/orders', movement.referenceId]"
+                     style="color:var(--color-accent); font-size:var(--font-size-sm);">
+                    View Order
+                  </a>
+                } @else {
+                  <span style="color:var(--color-text-muted);">—</span>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (!loading() && totalPages() > 1) {
+      <div class="table-pagination">
+        <span class="pagination-info">
+          Showing {{ currentPage() * pageSize + 1 }}–{{ Math.min((currentPage() + 1) * pageSize, totalElements()) }} of {{ totalElements() }}
+        </span>
+        <div class="pagination-controls">
+          <button class="pagination-btn" [disabled]="currentPage() === 0" (click)="goToPage(currentPage() - 1)">&#8249;</button>
+          @for (page of pageNumbers(); track page) {
+            <button
+              class="pagination-btn"
+              [class.pagination-page]="page === currentPage()"
+              [style.background]="page === currentPage() ? 'var(--color-accent)' : ''"
+              [style.color]="page === currentPage() ? '#fff' : ''"
+              [style.borderColor]="page === currentPage() ? 'var(--color-accent)' : ''"
+              (click)="goToPage(page)"
+            >{{ page + 1 }}</button>
+          }
+          <button class="pagination-btn" [disabled]="currentPage() === totalPages() - 1" (click)="goToPage(currentPage() + 1)">&#8250;</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

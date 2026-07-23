@@ -1,0 +1,139 @@
+<div class="page-container">
+
+
+  <div class="page-header">
+    <h1 class="page-title">Inventory</h1>
+    <div class="page-header-actions">
+      <button
+        type="button"
+        class="btn-outline"
+        [class.active]="showLowStockOnly()"
+        (click)="toggleLowStockFilter()">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        {{ showLowStockOnly() ? 'Show All' : 'Low Stock Only' }}
+      </button>
+      <a routerLink="/inventory/movements" class="btn-outline">
+        <i class="bi bi-clock-history" aria-hidden="true"></i>
+        Movement History
+      </a>
+    </div>
+  </div>
+
+
+  <div class="data-table-wrapper">
+    <table class="data-table" role="table" aria-label="Inventory stock levels">
+      <thead>
+        <tr>
+          <th role="columnheader" scope="col">Product</th>
+          <th role="columnheader" scope="col" class="td-num">On Hand</th>
+          <th role="columnheader" scope="col" class="td-num">Reserved</th>
+          <th role="columnheader" scope="col" class="td-num">Available</th>
+          <th role="columnheader" scope="col" class="td-num">Reorder Point</th>
+          <th role="columnheader" scope="col">Status</th>
+          <th role="columnheader" scope="col" class="th-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr class="table-loading-row" role="row" aria-busy="true">
+            <td role="cell" colspan="7">
+              <div class="table-loading-state" role="status">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span>Loading inventory…</span>
+              </div>
+            </td>
+          </tr>
+        } @else if (inventoryItems().length === 0) {
+          <tr role="row">
+            <td role="cell" colspan="7">
+              <div class="table-empty-state">
+                <div class="empty-icon"><i class="bi bi-boxes" aria-hidden="true"></i></div>
+                <div class="empty-title">
+                  {{ showLowStockOnly() ? 'No Low Stock Items' : 'No Inventory Items' }}
+                </div>
+                <div class="empty-desc">
+                  {{ showLowStockOnly() ? 'All items are above their reorder points.' : 'Items appear here once products are created.' }}
+                </div>
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (item of inventoryItems(); track item.id) {
+            <tr role="row">
+              <td role="cell">
+                <div class="inv-product">
+                  <span class="inv-product-name">{{ item.productName }}</span>
+                  <code class="inv-product-sku">{{ item.productSku }}</code>
+                </div>
+              </td>
+              <td role="cell" class="td-num" style="font-weight:600">{{ item.quantityOnHand }}</td>
+              <td role="cell" class="td-reserved">{{ item.quantityReserved }}</td>
+              <td role="cell" class="td-num">
+                <span class="stock-level stock-level--{{ stockLevel(item) }}">
+                  {{ getAvailableStock(item) }}
+                </span>
+              </td>
+              <td role="cell" class="td-reorder">{{ item.reorderPoint }}</td>
+              <td role="cell">
+                @if (getAvailableStock(item) <= 0) {
+                  <app-status-badge status="out-of-stock"></app-status-badge>
+                } @else if (isLowStock(item)) {
+                  <app-status-badge status="low-stock"></app-status-badge>
+                } @else {
+                  <app-status-badge status="in-stock"></app-status-badge>
+                }
+              </td>
+              <td role="cell" class="td-actions">
+                <button type="button" class="action-btn" (click)="openReceiptModal(item)" title="Receive stock" aria-label="Receive stock">
+                  <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="action-btn" (click)="openAdjustmentModal(item)" title="Adjust stock" aria-label="Adjust stock">
+                  <i class="bi bi-pencil" aria-hidden="true"></i>
+                </button>
+                <a [routerLink]="['/products', item.productId]" class="action-btn" title="View product" aria-label="View product">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </a>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (!loading() && !showLowStockOnly() && totalPages() > 1) {
+      <div class="table-pagination">
+        <span class="pagination-info">
+          {{ currentPage() * pageSize + 1 }}–{{ Math.min((currentPage() + 1) * pageSize, totalElements()) }}
+          of {{ totalElements() }} items
+        </span>
+        <div class="pagination-controls">
+          <button type="button" class="pagination-btn" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 0" aria-label="Previous page">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <span class="pagination-page">{{ currentPage() + 1 }} / {{ totalPages() }}</span>
+          <button type="button" class="pagination-btn" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages() - 1" aria-label="Next page">
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>
+
+
+@if (showReceiptModal() && selectedInventory(); as selectedInv) {
+  <app-stock-receipt-dialog
+    [inventory]="selectedInv"
+    [product]="getProduct(selectedInv.productId)!"
+    (closed)="closeModals()"
+    (succeeded)="onModalSuccess()" />
+}
+
+@if (showAdjustmentModal() && selectedInventory(); as selectedInv) {
+  <app-stock-adjustment-dialog
+    [inventory]="selectedInv"
+    [product]="getProduct(selectedInv.productId)!"
+    (closed)="closeModals()"
+    (succeeded)="onModalSuccess()" />
+}

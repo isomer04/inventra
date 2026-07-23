@@ -1,0 +1,42 @@
+<div aria-live="polite" aria-atomic="false" class="visually-hidden">
+  @for (toast of toasts(); track toast.id) {
+    @if (toast.type === 'success' || toast.type === 'info') {
+      <span>{{ toast.message }}</span>
+    }
+  }
+</div>
+
+<div aria-live="assertive" aria-atomic="false" class="visually-hidden">
+  @for (toast of toasts(); track toast.id) {
+    @if (toast.type === 'error' || toast.type === 'warning') {
+      <span>{{ toast.message }}</span>
+    }
+  }
+</div>
+
+<div class="toast-container" role="region" aria-label="Notifications">
+  @for (toast of toasts(); track toast.id) {
+    <div
+      class="toast-item"
+      [class]="'toast-item toast-' + toast.type"
+      (mouseenter)="onMouseEnter(toast.id)"
+      (mouseleave)="onMouseLeave(toast.id)"
+      (focusin)="onFocus(toast.id)"
+      (focusout)="onBlur(toast.id)">
+
+      <i [class]="'bi toast-icon ' + iconFor(toast.type)" aria-hidden="true"></i>
+
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+
+      <button
+        type="button"
+        class="toast-close"
+        (click)="dismiss(toast.id)"
+        aria-label="Dismiss notification">
+        <i class="bi bi-x" aria-hidden="true"></i>
+      </button>
+    </div>
+  }
+</div>

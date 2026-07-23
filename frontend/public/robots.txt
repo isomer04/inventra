@@ -1,0 +1,3 @@
+# Inventra is a private application — prevent search engines from indexing it.
+User-agent: *
+Disallow: /

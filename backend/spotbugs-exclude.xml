@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SpotBugs exclusion filter for Inventra backend.
+
+  Add entries here ONLY for confirmed false positives — never to silence
+  real findings. Each entry needs a justification comment and the date.
+
+  The main suppression file for OWASP Dependency-Check CVEs is
+  owasp-suppressions.xml (separate tool, separate file).
+
+  Reference: https://spotbugs.readthedocs.io/en/stable/filter.html
+-->
+<FindBugsFilter
+        xmlns="https://github.com/spotbugs/filter/3.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0
+                            https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
+
+    <!--
+      Exclude all test classes. Test code intentionally uses patterns that
+      SpotBugs would flag in production code:
+        - Hardcoded test secrets (e.g. @SpringBootTest(properties="app.jwt.secret=test"))
+        - Reflection and unsafe casts in assertions
+        - Ignored return values in void test helpers
+
+      Rationale: test files are not deployed; the risk model is different.
+      Date: 2026-05-23
+    -->
+    <Match>
+        <Class name="~.*Test$"/>
+    </Match>
+    <Match>
+        <Class name="~.*Tests$"/>
+    </Match>
+    <Match>
+        <Class name="~.*IT$"/>
+    </Match>
+
+    <!--
+      ENTITY_MASS_ASSIGNMENT false positives on DTO classes.
+
+      Find Security Bugs flags @RequestBody parameters as potential mass-assignment
+      vulnerabilities when the parameter type resembles a persistent object. All
+      flagged classes are purpose-built DTOs (records or plain POJOs) with no
+      @Entity annotation — they are not JPA entities and cannot be used to set
+      unintended database fields.
+
+      Each controller method uses a dedicated DTO that exposes only the fields
+      the endpoint is designed to accept. The service layer maps DTOs to entities
+      explicitly, so no unintended fields can be set via the request body.
+
+      Date: 2026-05-29
+    -->
+    <Match>
+        <Bug pattern="ENTITY_MASS_ASSIGNMENT"/>
+        <Class name="com.inventra.api.inventory.InventoryController"/>
+    </Match>
+    <Match>
+        <Bug pattern="ENTITY_MASS_ASSIGNMENT"/>
+        <Class name="com.inventra.api.order.OrderController"/>
+    </Match>
+    <Match>
+        <Bug pattern="ENTITY_MASS_ASSIGNMENT"/>
+        <Class name="com.inventra.api.user.UserController"/>
+    </Match>
+
+    <!--
+      CRLF_INJECTION_LOGS false positives caused by FindSecBugs taint propagation
+      through LogSanitizer.sanitize().
+
+      FindSecBugs' taint analysis tracks user-controlled values through method
+      calls and flags any log sink that receives a value derived from user input,
+      even after sanitization. LogSanitizer.sanitize() explicitly strips CR (\r)
+      and LF (\n) characters, making the output safe for logging. However,
+      FindSecBugs cannot model the sanitization effect of the replace() calls
+      and continues to treat the return value as tainted.
+
+      All log calls in the classes below pass user-controlled values through
+      LogSanitizer.sanitize() before logging, or log only validated/typed values
+      (e.g. LocalDate from @DateTimeFormat, enum values, numeric quantities)
+      that cannot contain CRLF sequences.
+
+      Date: 2026-05-29
+    -->
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.util.LogSanitizer"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.audit.AuditService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.auth.AuthService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.category.CategoryService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.customer.CustomerController"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.customer.CustomerService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.inventory.InventoryService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.inventory.StockMovementService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.order.OrderService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.product.ProductService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.report.ReportController"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.report.ReportService"/>
+    </Match>
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Class name="com.inventra.api.user.UserService"/>
+    </Match>
+
+    <!--
+      XSS_SERVLET false positive on JwtAuthFilter.sendUnauthorized.
+
+      The message written to the response is sanitized with a strict allowlist
+      regex (alphanumeric + basic punctuation only) before being written.
+      FindSecBugs cannot model the sanitization effect of the regex replacement
+      and flags the PrintWriter.write() call as a potential XSS sink.
+
+      Date: 2026-05-29
+    -->
+    <Match>
+        <Bug pattern="XSS_SERVLET"/>
+        <Class name="com.inventra.api.security.JwtAuthFilter"/>
+    </Match>
+
+</FindBugsFilter>

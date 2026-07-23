@@ -1,0 +1,141 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <nav aria-label="breadcrumb" style="margin-bottom:var(--space-1);">
+        <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+          <a routerLink="/reports" style="color:var(--color-accent);">Reports</a>
+          &rsaquo; Inventory Summary
+        </span>
+      </nav>
+      <h1 class="page-title">Inventory Summary Report</h1>
+    </div>
+    <button type="button" class="btn-outline" (click)="loadReport()">↻ Refresh</button>
+  </div>
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading inventory summary…</span>
+    </div>
+  }
+
+  @if (!loading() && report(); as report) {
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--space-4);margin-bottom:var(--space-8);">
+      <div class="card-surface">
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">Total SKUs</div>
+        <div style="font-size:var(--font-size-3xl);font-weight:700;">{{ report.totalSkus }}</div>
+      </div>
+      <div class="card-surface">
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">Stock Value</div>
+        <div style="font-size:var(--font-size-3xl);font-weight:700;color:var(--color-success);">{{ report.totalStockValue | currency }}</div>
+      </div>
+      <div class="card-surface">
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">Low Stock Items</div>
+        <div style="font-size:var(--font-size-3xl);font-weight:700;color:var(--color-warning);">{{ report.lowStockCount }}</div>
+      </div>
+      <div class="card-surface">
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">Utilization</div>
+        <div style="font-size:var(--font-size-3xl);font-weight:700;">{{ stockUtilization().toFixed(1) }}%</div>
+      </div>
+    </div>
+
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);">
+
+
+      <div class="card-surface">
+        <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-6);">Stock Quantities</h3>
+
+        <div style="margin-bottom:var(--space-6);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);font-size:var(--font-size-sm);">
+            <span>On Hand</span>
+            <strong>{{ report.totalQuantityOnHand }}</strong>
+          </div>
+          <div style="height:12px;background:var(--color-gray-100);border-radius:var(--radius-sm);overflow:hidden;">
+            <div style="height:100%;width:100%;background:var(--color-accent);border-radius:var(--radius-sm);" role="progressbar"
+              [attr.aria-valuenow]="report.totalQuantityOnHand" aria-valuemin="0" [attr.aria-valuemax]="report.totalQuantityOnHand"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:var(--space-6);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);font-size:var(--font-size-sm);">
+            <span>Reserved</span>
+            <strong style="color:var(--color-warning);">{{ report.totalQuantityReserved }}</strong>
+          </div>
+          <div style="height:12px;background:var(--color-gray-100);border-radius:var(--radius-sm);overflow:hidden;">
+            <div style="height:100%;background:var(--color-warning-bg);border-radius:var(--radius-sm);border:1px solid var(--color-warning);"
+              [style.width.%]="report.totalQuantityOnHand > 0 ? (report.totalQuantityReserved / report.totalQuantityOnHand * 100) : 0"
+              role="progressbar" [attr.aria-valuenow]="report.totalQuantityReserved" aria-valuemin="0" [attr.aria-valuemax]="report.totalQuantityOnHand"></div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);font-size:var(--font-size-sm);">
+            <span>Available</span>
+            <strong style="color:var(--color-success);">{{ totalQuantityAvailable() }}</strong>
+          </div>
+          <div style="height:12px;background:var(--color-gray-100);border-radius:var(--radius-sm);overflow:hidden;">
+            <div style="height:100%;background:var(--color-success-bg);border-radius:var(--radius-sm);border:1px solid var(--color-success);"
+              [style.width.%]="report.totalQuantityOnHand > 0 ? (totalQuantityAvailable() / report.totalQuantityOnHand * 100) : 0"
+              role="progressbar" [attr.aria-valuenow]="totalQuantityAvailable()" aria-valuemin="0" [attr.aria-valuemax]="report.totalQuantityOnHand"></div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="card-surface" style="padding:0;">
+        <div style="padding:var(--space-4) var(--space-6);border-bottom:1px solid var(--color-border);">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0;">Summary</h3>
+        </div>
+        <div class="data-table-wrapper" style="border-radius:0;box-shadow:none;">
+          <table class="data-table" style="min-width:0;">
+            <tbody>
+              <tr>
+                <td>Total Products (SKUs)</td>
+                <td style="text-align:right;"><strong>{{ report.totalSkus }}</strong></td>
+              </tr>
+              <tr>
+                <td>Total Stock Value</td>
+                <td style="text-align:right;"><strong>{{ report.totalStockValue | currency }}</strong></td>
+              </tr>
+              <tr>
+                <td>Low Stock Items</td>
+                <td style="text-align:right;">
+                  <span style="background:var(--color-warning-bg);color:var(--color-warning);padding:2px var(--space-2);border-radius:var(--radius-sm);font-size:var(--font-size-xs);font-weight:600;">
+                    {{ report.lowStockCount }}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>On Hand</td>
+                <td style="text-align:right;"><strong>{{ report.totalQuantityOnHand }}</strong></td>
+              </tr>
+              <tr>
+                <td>Reserved</td>
+                <td style="text-align:right;"><strong>{{ report.totalQuantityReserved }}</strong></td>
+              </tr>
+              <tr>
+                <td>Available</td>
+                <td style="text-align:right;"><strong>{{ totalQuantityAvailable() }}</strong></td>
+              </tr>
+              <tr>
+                <td>Utilization</td>
+                <td style="text-align:right;"><strong>{{ stockUtilization().toFixed(1) }}%</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:var(--space-4) var(--space-6);border-top:1px solid var(--color-border);display:flex;gap:var(--space-2);">
+          <a routerLink="/inventory" class="btn-outline" style="font-size:var(--font-size-sm);">View Inventory</a>
+          @if (report.lowStockCount > 0) {
+            <a routerLink="/inventory" [queryParams]="{lowStock: true}" class="btn-outline" style="font-size:var(--font-size-sm);color:var(--color-warning);border-color:var(--color-warning);">
+              View Low Stock
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

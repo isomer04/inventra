@@ -1,0 +1,83 @@
+
+<div class="dialog-backdrop" (click)="onCancel()" aria-hidden="true"
+  style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;"></div>
+
+
+<div class="card-surface dialog"
+  role="dialog" aria-modal="true" aria-labelledby="adjustment-dialog-title"
+  style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1001;width:min(480px,92vw);max-height:90vh;overflow-y:auto;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);">
+    <h2 id="adjustment-dialog-title" style="font-size:var(--font-size-lg);font-weight:600;margin:0;">
+      Adjust Stock
+    </h2>
+    <button class="btn-outline" style="padding:var(--space-1) var(--space-2);" (click)="onCancel()" aria-label="Close">✕</button>
+  </div>
+
+
+  <div class="card-surface" style="background:var(--color-gray-50);margin-bottom:var(--space-4);">
+    <div style="font-weight:600;margin-bottom:var(--space-1);">{{ product().name }}</div>
+    <div style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+      SKU: <code>{{ product().sku }}</code>
+    </div>
+    <div style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-top:var(--space-1);">
+      Current stock: <strong>{{ inventory().quantityOnHand }}</strong> {{ product().unitOfMeasure }}
+    </div>
+  </div>
+
+  <form [formGroup]="adjustmentForm" (ngSubmit)="onSubmit()">
+
+    <div class="form-field">
+      <label for="quantity" class="form-label">Adjustment Quantity <span style="color:var(--color-error)">*</span></label>
+      <input
+        type="number"
+        id="quantity"
+        class="form-input"
+        [class.is-invalid]="quantity?.invalid && quantity?.touched"
+        formControlName="quantity"
+        placeholder="0"
+      />
+      @if (quantity?.invalid && quantity?.touched) {
+        <span class="form-error">Adjustment quantity is required</span>
+      }
+      <span class="form-hint">Use positive numbers to increase stock, negative to decrease</span>
+    </div>
+
+
+    @if (quantity?.value !== 0 && quantity?.value !== null && quantity?.value !== undefined) {
+      <div style="padding:var(--space-3);border-radius:var(--radius-md);margin-bottom:var(--space-4);font-size:var(--font-size-sm);"
+        [style.background]="isIncrease ? 'var(--color-success-bg)' : 'var(--color-warning-bg)'"
+        [style.color]="isIncrease ? 'var(--color-success)' : 'var(--color-warning)'">
+        @if (isIncrease) {
+          ↑ Increasing stock by {{ quantity!.value }}
+        } @else {
+          ↓ Decreasing stock by {{ Math.abs(quantity!.value) }}
+        }
+        <br>New total will be: <strong>{{ newTotal }}</strong> {{ product().unitOfMeasure }}
+      </div>
+    }
+
+
+    <div class="form-field">
+      <label for="notes" class="form-label">Reason for Adjustment <span style="color:var(--color-error)">*</span></label>
+      <textarea
+        id="notes"
+        class="form-textarea"
+        [class.is-invalid]="notes?.invalid && notes?.touched"
+        formControlName="notes"
+        rows="3"
+        placeholder="Required: Explain why this adjustment is being made (e.g., damaged goods, inventory count correction)"
+      ></textarea>
+      @if (notes?.invalid && notes?.touched) {
+        <span class="form-error">Reason for adjustment is required</span>
+      }
+    </div>
+
+    <div style="display:flex;gap:var(--space-3);justify-content:flex-end;margin-top:var(--space-2);">
+      <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="submitting()">Cancel</button>
+      <button type="submit" class="btn-accent" [disabled]="submitting() || adjustmentForm.invalid">
+        {{ submitting() ? 'Saving…' : 'Adjust Stock' }}
+      </button>
+    </div>
+  </form>
+</div>

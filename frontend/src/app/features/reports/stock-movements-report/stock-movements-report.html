@@ -1,0 +1,69 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <nav aria-label="breadcrumb" style="margin-bottom:var(--space-1);">
+        <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+          <a routerLink="/reports" style="color:var(--color-accent);">Reports</a>
+          &rsaquo; Stock Movements
+        </span>
+      </nav>
+      <h1 class="page-title">Stock Movements Report</h1>
+    </div>
+  </div>
+
+
+  <div class="table-toolbar" style="margin-bottom:var(--space-6);">
+    <div class="form-field" style="margin-bottom:0;flex:1;min-width:140px;">
+      <label for="startDate" class="form-label">Start Date</label>
+      <input type="date" id="startDate" class="form-input" [(ngModel)]="startDate" />
+    </div>
+    <div class="form-field" style="margin-bottom:0;flex:1;min-width:140px;">
+      <label for="endDate" class="form-label">End Date</label>
+      <input type="date" id="endDate" class="form-input" [(ngModel)]="endDate" />
+    </div>
+    <div class="form-field" style="margin-bottom:0;flex:1;min-width:120px;">
+      <label for="groupBy" class="form-label">Group By</label>
+      <select id="groupBy" class="form-select" [(ngModel)]="groupBy">
+        <option value="type">Type</option>
+        <option value="date">Date</option>
+      </select>
+    </div>
+    <div style="align-self:flex-end;">
+      <button type="button" class="btn-accent" (click)="loadReport()">Generate Report</button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading stock movements report…</span>
+    </div>
+  }
+
+  @if (!loading() && report(); as report) {
+    <div class="data-table-wrapper">
+      <div style="padding:var(--space-4) var(--space-6);border-bottom:1px solid var(--color-border);">
+        <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0;">Movement Summary</h3>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ groupBy === 'type' ? 'Type' : 'Date' }}</th>
+            <th style="text-align:right;">Count</th>
+            <th style="text-align:right;">Total Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of report.movements; track (group.type || group.date)) {
+            <tr>
+              <td><strong>{{ group.type || group.date }}</strong></td>
+              <td style="text-align:right;">{{ group.count }}</td>
+              <td style="text-align:right;">{{ group.totalQuantity }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

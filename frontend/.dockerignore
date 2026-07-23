@@ -1,0 +1,24 @@
+# Keep the host's node_modules out of the build context.
+# The Dockerfile runs `npm ci` and then `COPY . .`; without this rule that COPY
+# overwrites the container's freshly installed Linux tree with the host's, which
+# on a Windows or macOS machine means native esbuild/rollup binaries for the wrong
+# platform inside an Alpine image. CI never hit it because a fresh checkout has no
+# node_modules — so the breakage was local-only.
+node_modules
+npm-debug.log*
+
+# Build output and caches — regenerated inside the image, hundreds of MB otherwise.
+dist
+coverage
+.angular
+
+# Repo metadata and editor state
+.git
+.gitignore
+.vscode
+.idea
+*.log
+
+# Containerfiles themselves
+Dockerfile
+.dockerignore

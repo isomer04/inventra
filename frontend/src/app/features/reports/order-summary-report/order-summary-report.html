@@ -1,0 +1,84 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <nav aria-label="breadcrumb" style="margin-bottom:var(--space-1);">
+        <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+          <a routerLink="/reports" style="color:var(--color-accent);">Reports</a>
+          &rsaquo; Order Summary
+        </span>
+      </nav>
+      <h1 class="page-title">Order Summary Report</h1>
+    </div>
+  </div>
+
+
+  <div class="table-toolbar" style="margin-bottom:var(--space-6);">
+    <div class="form-field" style="margin-bottom:0;flex:1;min-width:140px;">
+      <label for="startDate" class="form-label">Start Date</label>
+      <input type="date" id="startDate" class="form-input" [(ngModel)]="startDate" />
+    </div>
+    <div class="form-field" style="margin-bottom:0;flex:1;min-width:140px;">
+      <label for="endDate" class="form-label">End Date</label>
+      <input type="date" id="endDate" class="form-input" [(ngModel)]="endDate" />
+    </div>
+    <div style="align-self:flex-end;">
+      <button type="button" class="btn-accent" (click)="loadReport()">Generate Report</button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading order summary…</span>
+    </div>
+  }
+
+  @if (!loading() && report(); as report) {
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);margin-bottom:var(--space-8);">
+      <div class="card-surface" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:var(--space-2);">🛒</div>
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">Total Orders</div>
+        <div style="font-size:var(--font-size-3xl);font-weight:700;">{{ report.totalOrders }}</div>
+      </div>
+      <div class="card-surface" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:var(--space-2);">💰</div>
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">Total GMV</div>
+        <div style="font-size:var(--font-size-3xl);font-weight:700;color:var(--color-success);">{{ report.totalGmv | currency }}</div>
+      </div>
+      <div class="card-surface" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:var(--space-2);">⏱</div>
+        <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">Avg Fulfillment</div>
+        <div style="font-size:var(--font-size-3xl);font-weight:700;">
+          {{ averageFulfillmentTimeHours() !== null ? (averageFulfillmentTimeHours()! | number:'1.1-1') + 'h' : 'N/A' }}
+        </div>
+      </div>
+    </div>
+
+
+    <div class="data-table-wrapper">
+      <div style="padding:var(--space-4) var(--space-6);border-bottom:1px solid var(--color-border);">
+        <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0;">Orders by Status</h3>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th style="text-align:right;">Count</th>
+            <th style="text-align:right;">Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of ordersByStatusArray(); track group.status) {
+            <tr>
+              <td><strong>{{ group.status }}</strong></td>
+              <td style="text-align:right;">{{ group.count }}</td>
+              <td style="text-align:right;">{{ group.totalAmount | currency }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

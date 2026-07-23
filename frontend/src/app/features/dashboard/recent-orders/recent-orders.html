@@ -1,0 +1,54 @@
+<section class="recent-orders" aria-label="Recent orders">
+  <div class="recent-orders__header">
+    <h2 class="recent-orders__title">Recent Orders</h2>
+    <a routerLink="/orders" class="recent-orders__view-all" aria-label="View all orders">
+      View all <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="content-loading-state content-loading-state--compact" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading recent orders…</span>
+    </div>
+  } @else if (!orders().length) {
+    <div class="recent-orders__empty" role="status">
+      <i class="bi bi-cart fs-2 text-muted"></i>
+      <p class="text-muted mt-2 mb-0">No orders yet</p>
+    </div>
+  } @else {
+    <div class="table-responsive">
+      <table class="table table-hover recent-orders__table" aria-label="Recent orders list">
+        <thead>
+          <tr>
+            <th scope="col">Order</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of orders(); track order.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/orders', order.id]" class="fw-semibold text-decoration-none">
+                  {{ order.orderNumber }}
+                </a>
+                <div class="text-muted small">{{ order.createdAt | date:'MMM d, y' }}</div>
+              </td>
+              <td class="align-middle">{{ order.customerName }}</td>
+              <td class="align-middle">
+                <span class="badge {{ getStatusConfig(order.status).badgeClass }}">
+                  {{ getStatusConfig(order.status).label }}
+                </span>
+              </td>
+              <td class="align-middle text-end fw-semibold">
+                {{ order.totalAmount | currency }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

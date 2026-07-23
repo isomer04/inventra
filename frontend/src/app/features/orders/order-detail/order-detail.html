@@ -1,0 +1,233 @@
+<div class="page-container">
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading order details…</span>
+    </div>
+  }
+
+  @if (!loading() && order(); as order) {
+
+    <div class="page-header">
+      <div>
+        <nav aria-label="breadcrumb" style="margin-bottom:var(--space-2);">
+          <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+            <a routerLink="/orders" style="color:var(--color-accent);">Orders</a>
+            &rsaquo; {{ order.orderNumber }}
+          </span>
+        </nav>
+        <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;">
+          <h1 class="page-title">Order {{ order.orderNumber }}</h1>
+          <app-status-badge [status]="order.status.toLowerCase()" />
+        </div>
+      </div>
+      <div style="display:flex;gap:var(--space-2);">
+        @if (canEdit()) {
+          <a [routerLink]="['/orders', order.id, 'edit']" class="btn-accent">Edit</a>
+        }
+        @if (canDelete()) {
+          <button class="btn-outline" style="color:var(--color-error);border-color:var(--color-error);" (click)="requestDelete()">Delete</button>
+        }
+      </div>
+    </div>
+
+
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:var(--space-6);align-items:start;">
+
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-6);">
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Order Information</h3>
+          <div class="detail-grid">
+            <span class="detail-label">Order Number</span>
+            <strong>{{ order.orderNumber }}</strong>
+
+            <span class="detail-label">Status</span>
+            <app-status-badge [status]="order.status.toLowerCase()" />
+
+            <span class="detail-label">Customer</span>
+            <span>
+              @if (customer(); as customer) {
+                <a [routerLink]="['/customers', customer.id]" style="color:var(--color-accent);">{{ customer.name }}</a>
+              } @else {
+                <span style="color:var(--color-text-muted);">Loading…</span>
+              }
+            </span>
+
+            <span class="detail-label">Total Amount</span>
+            <strong style="color:var(--color-success);">{{ order.totalAmount | currency }}</strong>
+
+            <span class="detail-label">Created</span>
+            <span>{{ order.createdAt | date:'medium' }}</span>
+
+            <span class="detail-label">Last Updated</span>
+            <span>{{ order.updatedAt | date:'medium' }}</span>
+
+            @if (order.notes) {
+              <span class="detail-label">Notes</span>
+              <span>{{ order.notes }}</span>
+            }
+          </div>
+        </div>
+
+
+        <div class="card-surface" style="padding:0;">
+          <div style="padding:var(--space-4) var(--space-6);border-bottom:1px solid var(--color-border);">
+            <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0;">Order Items</h3>
+          </div>
+          <div class="data-table-wrapper" style="border-radius:0;box-shadow:none;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th style="text-align:right;">Quantity</th>
+                  <th style="text-align:right;">Unit Price</th>
+                  <th style="text-align:right;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of order.items; track item.id) {
+                  <tr>
+                    <td>
+                      @if (getProduct(item.productId); as product) {
+                        <div>
+                          <a [routerLink]="['/products', product.id]" style="font-weight:500;color:var(--color-accent);">
+                            {{ product.name }}
+                          </a>
+                          <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);">
+                            <code>{{ product.sku }}</code>
+                          </div>
+                        </div>
+                      } @else {
+                        <span class="inline-loading-text">Loading product…</span>
+                      }
+                    </td>
+                    <td style="text-align:right;">{{ item.quantity }}</td>
+                    <td style="text-align:right;">{{ item.unitPrice | currency }}</td>
+                    <td style="text-align:right;font-weight:600;">{{ item.totalPrice | currency }}</td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr style="background:var(--color-gray-50);">
+                  <td colspan="3" style="text-align:right;font-weight:600;padding:var(--space-3) var(--space-4);">Total:</td>
+                  <td style="text-align:right;font-weight:700;color:var(--color-success);padding:var(--space-3) var(--space-4);">
+                    {{ order.totalAmount | currency }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+
+        @if (statusHistory().length > 0) {
+          <div class="card-surface">
+            <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Status History</h3>
+            <app-status-history [history]="statusHistory()" />
+          </div>
+        }
+      </div>
+
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-6);">
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Actions</h3>
+          <div class="action-list" style="display:flex;flex-direction:column;gap:var(--space-2);">
+            @if (canSubmit()) {
+              <button class="btn-outline" style="width:100%;text-align:left;" (click)="performAction('submit')" [disabled]="actionInProgress()">
+                ✉ Submit Order
+              </button>
+            }
+            @if (canApprove()) {
+              <button class="btn-accent" style="width:100%;text-align:left;" (click)="performAction('approve')" [disabled]="actionInProgress()">
+                ✓ Approve Order
+              </button>
+            }
+            @if (canReject()) {
+              <button class="btn-outline" style="width:100%;text-align:left;color:var(--color-error);border-color:var(--color-error);"
+                (click)="performAction('reject')" [disabled]="actionInProgress()">
+                ✕ Reject Order
+              </button>
+            }
+            @if (canStartPicking()) {
+              <button class="btn-outline" style="width:100%;text-align:left;" (click)="performAction('start-picking')" [disabled]="actionInProgress()">
+                📦 Start Picking
+              </button>
+            }
+            @if (canShip()) {
+              <button class="btn-outline" style="width:100%;text-align:left;" (click)="performAction('ship')" [disabled]="actionInProgress()">
+                🚚 Ship Order
+              </button>
+            }
+            @if (canDeliver()) {
+              <button class="btn-accent" style="width:100%;text-align:left;" (click)="performAction('deliver')" [disabled]="actionInProgress()">
+                ✓ Mark as Delivered
+              </button>
+            }
+            @if (canCancel()) {
+              <button class="btn-outline" style="width:100%;text-align:left;color:var(--color-warning);border-color:var(--color-warning);"
+                (click)="performAction('cancel')" [disabled]="actionInProgress()">
+                ⊘ Cancel Order
+              </button>
+            }
+            @if (canEdit()) {
+              <a [routerLink]="['/orders', order.id, 'edit']" class="btn-outline" style="width:100%;text-align:left;">
+                ✏ Edit Order
+              </a>
+            }
+            @if (canDelete()) {
+              <button class="btn-outline" style="width:100%;text-align:left;color:var(--color-error);border-color:var(--color-error);"
+                (click)="requestDelete()">
+                🗑 Delete Order
+              </button>
+            }
+          </div>
+        </div>
+
+
+        @if (customer(); as customer) {
+          <div class="card-surface">
+            <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Customer</h3>
+            <div class="detail-grid">
+              <span class="detail-label">Name</span>
+              <a [routerLink]="['/customers', customer.id]" style="color:var(--color-accent);">{{ customer.name }}</a>
+
+              @if (customer.email) {
+                <span class="detail-label">Email</span>
+                <a [href]="'mailto:' + customer.email" style="color:var(--color-accent);">{{ customer.email }}</a>
+              }
+
+              @if (customer.phone) {
+                <span class="detail-label">Phone</span>
+                <a [href]="'tel:' + customer.phone" style="color:var(--color-accent);">{{ customer.phone }}</a>
+              }
+
+              @if (customer.address) {
+                <span class="detail-label">Address</span>
+                <span>{{ customer.address }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+
+  @if (pendingDelete()) {
+    <app-confirmation-dialog
+      title="Delete Order"
+      [message]="'Are you sure you want to delete order &quot;' + pendingDelete()!.orderNumber + '&quot;? This action cannot be undone.'"
+      confirmLabel="Delete"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
+  }
+</div>

@@ -1,0 +1,12 @@
+<!-- Skip to main content link for accessibility (WCAG 2.1 Level A - 2.4.1) -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<app-toast-container></app-toast-container>
+
+<!--
+  Router outlet renders one of:
+  - LoginComponent / SignupComponent  → each owns a <main id="main-content">
+  - MainLayoutComponent               → owns a <main id="main-content">
+  The id is unique per rendered page; no duplicate-ID issue.
+-->
+<router-outlet></router-outlet>

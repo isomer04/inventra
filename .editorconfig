@@ -1,0 +1,41 @@
+# EditorConfig — https://editorconfig.org
+# Covers both the backend (Java) and frontend (TS/HTML) in a single file.
+# The frontend/ directory has its own .editorconfig for Angular-specific
+# settings; this root file provides the project-wide baseline.
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+
+[*.java]
+indent_style = space
+indent_size = 4
+
+[*.{ts,js,mjs,cjs}]
+indent_style = space
+indent_size = 2
+
+[*.html]
+indent_style = space
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.{json,jsonc}]
+indent_style = space
+indent_size = 2
+
+[*.xml]
+indent_style = space
+indent_size = 4
+
+[*.{md,mdx}]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab

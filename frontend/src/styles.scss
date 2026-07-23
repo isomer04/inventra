@@ -1,0 +1,38 @@
+// Bootstrap variable overrides must come before Bootstrap.
+@use 'styles/bootstrap-overrides' as *;
+
+@use 'bootstrap/scss/bootstrap' as *;
+
+@use 'bootstrap-icons/font/bootstrap-icons' as *;
+
+@use 'styles/design-tokens' as *;
+
+@use 'styles/typography' as *;
+
+@use 'styles/reset' as *;
+@use 'styles/tables' as *;
+@use 'styles/forms' as *;
+@use 'styles/badges' as *;
+@use 'styles/toasts' as *;
+@use 'styles/utilities' as *;
+
+// Visually hidden until focused; uses design-system accent for the focus ring.
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  z-index: 9999;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-surface);
+  color: var(--color-accent);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: top 0.2s ease;
+
+  &:focus {
+    top: var(--space-4);
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}

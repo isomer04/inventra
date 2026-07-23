@@ -1,0 +1,75 @@
+
+<div class="dialog-backdrop" (click)="onCancel()" aria-hidden="true"
+  style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;"></div>
+
+
+<div class="card-surface dialog"
+  role="dialog" aria-modal="true" aria-labelledby="receipt-dialog-title"
+  style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1001;width:min(480px,92vw);max-height:90vh;overflow-y:auto;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);">
+    <h2 id="receipt-dialog-title" style="font-size:var(--font-size-lg);font-weight:600;margin:0;">
+      Receive Stock
+    </h2>
+    <button class="btn-outline" style="padding:var(--space-1) var(--space-2);" (click)="onCancel()" aria-label="Close">✕</button>
+  </div>
+
+
+  <div class="card-surface" style="background:var(--color-gray-50);margin-bottom:var(--space-4);">
+    <div style="font-weight:600;margin-bottom:var(--space-1);">{{ product().name }}</div>
+    <div style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+      SKU: <code>{{ product().sku }}</code>
+    </div>
+    <div style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-top:var(--space-1);">
+      Current stock: <strong>{{ inventory().quantityOnHand }}</strong> {{ product().unitOfMeasure }}
+    </div>
+  </div>
+
+  <form [formGroup]="receiptForm" (ngSubmit)="onSubmit()">
+
+    <div class="form-field">
+      <label for="quantity" class="form-label">Quantity to Receive <span style="color:var(--color-error)">*</span></label>
+      <input
+        type="number"
+        id="quantity"
+        class="form-input"
+        [class.is-invalid]="quantity?.invalid && quantity?.touched"
+        formControlName="quantity"
+        placeholder="0"
+        min="1"
+      />
+      @if (quantity?.invalid && quantity?.touched) {
+        <span class="form-error">
+          @if (quantity?.errors?.['required']) { Quantity is required }
+          @if (quantity?.errors?.['min']) { Quantity must be at least 1 }
+        </span>
+      }
+    </div>
+
+
+    @if ((quantity?.value ?? 0) > 0) {
+      <div style="background:var(--color-success-bg);color:var(--color-success);padding:var(--space-3);border-radius:var(--radius-md);margin-bottom:var(--space-4);font-size:var(--font-size-sm);">
+        New total stock will be: <strong>{{ newTotal }}</strong> {{ product().unitOfMeasure }}
+      </div>
+    }
+
+
+    <div class="form-field">
+      <label for="notes" class="form-label">Notes</label>
+      <textarea
+        id="notes"
+        class="form-textarea"
+        formControlName="notes"
+        rows="3"
+        placeholder="Optional notes (e.g., supplier, PO number)"
+      ></textarea>
+    </div>
+
+    <div style="display:flex;gap:var(--space-3);justify-content:flex-end;margin-top:var(--space-2);">
+      <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="submitting()">Cancel</button>
+      <button type="submit" class="btn-accent" [disabled]="submitting() || receiptForm.invalid">
+        {{ submitting() ? 'Saving…' : 'Receive Stock' }}
+      </button>
+    </div>
+  </form>
+</div>

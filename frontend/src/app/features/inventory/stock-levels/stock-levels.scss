@@ -1,0 +1,61 @@
+.page-header-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+
+  .btn-outline.active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #ffffff;
+  }
+}
+
+.inv-product {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &-name { font-weight: 500; font-size: var(--font-size-sm); color: var(--color-text); }
+  &-sku {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+}
+
+// Stock quantity colour tokens — replaces Bootstrap text-* classes and inline styles
+.stock-level {
+  font-weight: 600;
+
+  &--critical { color: var(--color-error); }
+  &--warning  { color: var(--color-warning); }
+  &--ok       { color: var(--color-success); }
+}
+
+.td-num { text-align: right; }
+
+.td-reserved { text-align: right; color: var(--color-warning); }
+
+.td-reorder { text-align: right; color: var(--color-text-muted); }
+
+.th-actions, .td-actions { text-align: right; white-space: nowrap; }
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 150ms ease;
+  font-size: 0.875rem;
+  margin-left: var(--space-1);
+
+  &:hover { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-subtle); }
+  &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+}

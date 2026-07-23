@@ -1,0 +1,127 @@
+<main id="main-content" tabindex="-1">
+<div class="login-bg">
+  <div class="login-card" role="region" aria-label="Sign in to Inventra">
+
+
+    <div class="login-brand">
+      <i class="bi bi-box-seam login-brand__icon" aria-hidden="true"></i>
+      <h1 class="login-brand__name">Inventra</h1>
+      <p class="login-brand__tagline">Inventory &amp; Order Management</p>
+    </div>
+
+
+    @if (errorMessage()) {
+      <div class="login-alert" role="alert" aria-live="assertive">
+        <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+
+
+      <div class="form-field">
+        <label class="form-label" for="email">Email address</label>
+        <input
+          type="email"
+          id="email"
+          class="form-input"
+          [class.is-invalid]="email?.invalid && email?.touched"
+          formControlName="email"
+          autocomplete="email"
+          [attr.aria-invalid]="email?.invalid && email?.touched ? 'true' : null"
+          [attr.aria-describedby]="email?.invalid && email?.touched ? 'email-error' : null"
+          (input)="errorMessage.set('')"
+        />
+        @if (email?.touched && email?.invalid) {
+          <span id="email-error" class="form-error" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            @if (email?.hasError('required')) {
+              Email is required
+            } @else if (email?.hasError('email')) {
+              Please enter a valid email address
+            }
+          </span>
+        }
+      </div>
+
+  
+      <div class="form-field">
+        <label class="form-label" for="password">Password</label>
+        <div class="input-group" [class.is-invalid]="password?.invalid && password?.touched">
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            id="password"
+            class="form-input"
+            [class.is-invalid]="password?.invalid && password?.touched"
+            formControlName="password"
+            autocomplete="current-password"
+            [attr.aria-invalid]="password?.invalid && password?.touched ? 'true' : null"
+            [attr.aria-describedby]="password?.invalid && password?.touched ? 'password-error' : null"
+            (input)="errorMessage.set('')"
+          />
+          <button
+            type="button"
+            class="input-addon"
+            [class.is-invalid]="password?.invalid && password?.touched"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            [attr.aria-pressed]="showPassword()">
+            <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()" aria-hidden="true"></i>
+          </button>
+        </div>
+        @if (password?.touched && password?.invalid) {
+          <span id="password-error" class="form-error" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            @if (password?.hasError('required')) {
+              Password is required
+            } @else if (password?.hasError('minlength')) {
+              Password must be at least 8 characters
+            }
+          </span>
+        }
+      </div>
+
+
+      <button
+        type="submit"
+        class="btn-accent btn-block login-submit"
+        [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Signing in&hellip;
+        } @else {
+          Sign in
+        }
+      </button>
+
+    </form>
+
+
+    <div class="login-demo">
+      <p class="login-demo__label">Demo credentials</p>
+      <p class="login-demo__row">
+        <span class="login-demo__key">Email</span>
+        <button type="button" class="login-demo__val" (click)="fillDemoCredentials()">
+          admin&#64;demo.com
+        </button>
+      </p>
+      <p class="login-demo__row">
+        <span class="login-demo__key">Password</span>
+        <button type="button" class="login-demo__val" (click)="fillDemoCredentials()">
+          demo1234
+        </button>
+      </p>
+      <p class="login-demo__hint">Click either value to auto-fill</p>
+    </div>
+
+
+    <p class="login-signup">
+      Don't have an account?
+      <a routerLink="/signup" class="login-signup__link">Sign up free</a>
+    </p>
+
+  </div>
+</div>
+</main>

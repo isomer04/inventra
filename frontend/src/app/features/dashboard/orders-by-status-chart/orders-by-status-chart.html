@@ -1,0 +1,23 @@
+<div class="chart-card">
+  <h2 class="chart-card__title">Orders by Status</h2>
+
+  @if (loading()) {
+    <div class="content-loading-state" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading orders by status…</span>
+    </div>
+  } @else if (!ordersByStatus().length) {
+    <div class="chart-card__empty" role="status">
+      <i class="bi bi-cart-x fs-2 text-muted"></i>
+      <p class="text-muted mt-2 mb-0">No order data available</p>
+    </div>
+  } @else {
+    <div class="chart-card__canvas" role="img" aria-label="Doughnut chart showing orders grouped by status">
+      <canvas baseChart
+        [data]="chartData()"
+        [options]="chartOptions"
+        type="doughnut">
+      </canvas>
+    </div>
+  }
+</div>

@@ -1,0 +1,102 @@
+# Standalone production Docker Compose file.
+# Usage: docker compose -f docker-compose.prod.yml up -d
+#
+# Copy .env.example to .env and fill in all required values before running.
+# All variables marked with :? are required — the deployment will fail fast
+# if any are missing rather than silently using insecure defaults.
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?MYSQL_DATABASE must be set}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD must be set}
+      # Least-privilege identities created by scripts/db-init.sh on first startup.
+      FLYWAY_PASSWORD: ${FLYWAY_PASSWORD:?FLYWAY_PASSWORD must be set — used by Flyway migration user}
+      APP_PASSWORD: ${APP_PASSWORD:?APP_PASSWORD must be set — used by Spring Boot runtime user}
+      BACKUP_PASSWORD: ${BACKUP_PASSWORD:?BACKUP_PASSWORD must be set — used by the read-only backup user}
+    # No host port binding — MySQL is only reachable within the Docker network
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/db-init.sh:/docker-entrypoint-initdb.d/01-db-init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$${MYSQL_ROOT_PASSWORD}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+        reservations:
+          memory: 512m
+
+  app:
+    build: ./backend
+    # No host port — nginx proxies /api/ to this service internally
+    environment:
+      DB_URL: ${DB_URL:?DB_URL must be set — use an SSL-enabled connection string}
+      # DB user privilege separation (ADR-0004): production always uses the
+      # DML-only identity created by scripts/db-init.sh.
+      DB_USERNAME: inventra_app
+      DB_PASSWORD: ${APP_PASSWORD:?APP_PASSWORD must be set — used by inventra_app}
+      # Flyway always uses the DDL-capable identity created by the initializer.
+      SPRING_FLYWAY_USER: inventra_flyway
+      SPRING_FLYWAY_PASSWORD: ${FLYWAY_PASSWORD:?FLYWAY_PASSWORD must be set}
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set — generate with: openssl rand -base64 64}"
+      JWT_ACCESS_EXPIRY_MS: ${JWT_ACCESS_EXPIRY_MS:-900000}
+      JWT_REFRESH_EXPIRY_MS: ${JWT_REFRESH_EXPIRY_MS:-604800000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS must be set — e.g. https://app.yourdomain.com}
+      # Set to "true" only when the backend is reachable exclusively through
+      # a trusted reverse proxy (nginx in this compose setup). Direct internet
+      # exposure with this flag enabled allows clients to spoof X-Forwarded-For.
+      TRUST_FORWARDED_FOR: ${TRUST_FORWARDED_FOR:-true}
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "2.0"
+        reservations:
+          memory: 512m
+
+  frontend:
+    build: ./frontend
+    environment:
+      # Production must fail closed rather than serving credentials over plaintext.
+      REQUIRE_TLS: "true"
+    ports:
+      # Port 443 → container 8443 (HTTPS)
+      # Port 80  → container 8080 (HTTP→HTTPS redirect)
+      - "443:8443"
+      - "80:8080"
+    volumes:
+      # Production requires cert.pem + key.pem in this read-only directory.
+      - ${TLS_CERT_DIR:-/etc/ssl/inventra}:/etc/ssl/inventra:ro
+      # restore.sh toggles this host marker while nginx continues serving 503.
+      - ${MAINTENANCE_DIR:-./.maintenance}:/var/run/inventra:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: "0.5"
+
+volumes:
+  mysql_data:

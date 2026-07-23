@@ -1,0 +1,82 @@
+.cursor-pointer {
+  cursor: pointer;
+}
+
+// Uses dvh (dynamic viewport height) with vh fallback for older browsers.
+.full-height {
+  height: 100vh;
+  height: 100dvh;
+}
+
+// Screen-reader-only content — mirrors Bootstrap's .visually-hidden but as a
+// custom class so it is available regardless of Bootstrap's utility API.
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.bg-surface {
+  background-color: var(--color-surface);
+}
+
+// Usage: <div class="detail-grid"> <span class="detail-label">...</span> <span>value</span> </div>
+.detail-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: var(--space-3) var(--space-4);
+  align-items: baseline;
+
+  .detail-label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+.page-container {
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.content-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 12rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+
+  &--compact {
+    min-height: 4rem;
+  }
+
+  .spinner-border {
+    color: var(--color-accent);
+  }
+}
+
+.inline-loading-text {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-loading-state .spinner-border {
+    animation: none;
+  }
+}

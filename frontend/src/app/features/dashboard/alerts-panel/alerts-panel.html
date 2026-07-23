@@ -1,0 +1,84 @@
+<section class="alerts-panel" aria-label="Action required alerts">
+  <h2 class="alerts-panel__title">Action Required</h2>
+
+  @if (loading()) {
+    <div class="content-loading-state content-loading-state--compact" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading alerts…</span>
+    </div>
+  } @else if (!hasAlerts()) {
+    <div class="alerts-panel__empty" role="status">
+      <i class="bi bi-check-circle-fill text-success fs-3"></i>
+      <p class="text-muted mt-2 mb-0">All clear — no action needed</p>
+    </div>
+  } @else {
+
+
+    @if (lowStockItems().length > 0) {
+      <div class="alert-group">
+        <div class="alert-group__header alert-group__header--danger">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>Low Stock ({{ lowStockItems().length }})</span>
+          <a routerLink="/inventory" class="alert-group__link ms-auto" aria-label="View all low stock items">
+            View all <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+        <ul class="alert-group__list" aria-label="Low stock items">
+          @for (item of lowStockItems().slice(0, 5); track item.productId) {
+            <li class="alert-group__item">
+              <span class="alert-group__item-name">{{ item.productName }}</span>
+              <span class="badge bg-danger ms-auto">{{ item.quantityOnHand }} / {{ item.reorderPoint }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Awaiting approval — sourced from a dedicated SUBMITTED orders call -->
+    @if (awaitingApprovalOrders().length > 0) {
+      <div class="alert-group">
+        <div class="alert-group__header alert-group__header--warning">
+          <i class="bi bi-hourglass-split"></i>
+          <span>Awaiting Approval ({{ awaitingApprovalOrders().length }})</span>
+          <a routerLink="/orders" class="alert-group__link ms-auto" aria-label="View orders awaiting approval">
+            View all <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+        <ul class="alert-group__list" aria-label="Orders awaiting approval">
+          @for (order of awaitingApprovalOrders(); track order.id) {
+            <li class="alert-group__item">
+              <a [routerLink]="['/orders', order.id]" class="alert-group__item-name">
+                {{ order.orderNumber }}
+              </a>
+              <span class="text-muted small ms-auto">{{ order.customerName }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Ready to ship — sourced from a dedicated APPROVED orders call -->
+    @if (readyToShipOrders().length > 0) {
+      <div class="alert-group">
+        <div class="alert-group__header alert-group__header--info">
+          <i class="bi bi-truck"></i>
+          <span>Ready to Ship ({{ readyToShipOrders().length }})</span>
+          <a routerLink="/orders" class="alert-group__link ms-auto" aria-label="View orders ready to ship">
+            View all <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+        <ul class="alert-group__list" aria-label="Orders ready to ship">
+          @for (order of readyToShipOrders(); track order.id) {
+            <li class="alert-group__item">
+              <a [routerLink]="['/orders', order.id]" class="alert-group__item-name">
+                {{ order.orderNumber }}
+              </a>
+              <span class="badge bg-info text-dark ms-auto">{{ order.status }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+  }
+</section>

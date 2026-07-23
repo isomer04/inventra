@@ -1,0 +1,187 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <nav aria-label="breadcrumb" style="margin-bottom:var(--space-1);">
+        <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+          <a routerLink="/products" style="color:var(--color-accent);">Products</a>
+          &rsaquo; {{ isEditMode() ? 'Edit' : 'Create' }}
+        </span>
+      </nav>
+      <h1 class="page-title">{{ isEditMode() ? 'Edit Product' : 'Create Product' }}</h1>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading product form…</span>
+    </div>
+  }
+
+  @if (!loading()) {
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:var(--space-6);align-items:start;">
+
+
+      <div class="card-surface">
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+
+
+          <div class="form-field">
+            <label for="sku" class="form-label">SKU <span style="color:var(--color-error)">*</span></label>
+            <input
+              type="text"
+              id="sku"
+              class="form-input"
+              [class.is-invalid]="sku?.invalid && sku?.touched"
+              formControlName="sku"
+              placeholder="Enter product SKU"
+            />
+            @if (sku?.invalid && sku?.touched) {
+              <span class="form-error">
+                @if (sku?.errors?.['required']) { SKU is required }
+                @if (sku?.errors?.['maxlength']) { SKU must be at most 100 characters }
+              </span>
+            }
+            <span class="form-hint">Unique identifier for the product</span>
+          </div>
+
+
+          <div class="form-field">
+            <label for="name" class="form-label">Product Name <span style="color:var(--color-error)">*</span></label>
+            <input
+              type="text"
+              id="name"
+              class="form-input"
+              [class.is-invalid]="name?.invalid && name?.touched"
+              formControlName="name"
+              placeholder="Enter product name"
+            />
+            @if (name?.invalid && name?.touched) {
+              <span class="form-error">
+                @if (name?.errors?.['required']) { Product name is required }
+                @if (name?.errors?.['maxlength']) { Name must be at most 200 characters }
+              </span>
+            }
+          </div>
+
+
+          <div class="form-field">
+            <label for="description" class="form-label">Description</label>
+            <textarea
+              id="description"
+              class="form-textarea"
+              formControlName="description"
+              rows="3"
+              placeholder="Enter product description (optional)"
+            ></textarea>
+          </div>
+
+
+          <div class="form-field">
+            <label for="categoryId" class="form-label">Category</label>
+            <select id="categoryId" class="form-select" formControlName="categoryId">
+              <option value="">No Category</option>
+              @for (category of categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+            <span class="form-hint">Optional: Assign product to a category</span>
+          </div>
+
+
+          <div class="form-field">
+            <label for="unitPrice" class="form-label">Unit Price <span style="color:var(--color-error)">*</span></label>
+            <input
+              type="number"
+              id="unitPrice"
+              class="form-input"
+              [class.is-invalid]="unitPrice?.invalid && unitPrice?.touched"
+              formControlName="unitPrice"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+            @if (unitPrice?.invalid && unitPrice?.touched) {
+              <span class="form-error">
+                @if (unitPrice?.errors?.['required']) { Unit price is required }
+                @if (unitPrice?.errors?.['min']) { Unit price must be at least 0 }
+              </span>
+            }
+          </div>
+
+
+          <div class="form-field">
+            <label for="unitOfMeasure" class="form-label">Unit of Measure <span style="color:var(--color-error)">*</span></label>
+            <input
+              type="text"
+              id="unitOfMeasure"
+              class="form-input"
+              [class.is-invalid]="unitOfMeasure?.invalid && unitOfMeasure?.touched"
+              formControlName="unitOfMeasure"
+              placeholder="e.g., each, kg, box"
+            />
+            @if (unitOfMeasure?.invalid && unitOfMeasure?.touched) {
+              <span class="form-error">
+                @if (unitOfMeasure?.errors?.['required']) { Unit of measure is required }
+                @if (unitOfMeasure?.errors?.['maxlength']) { Unit of measure must be at most 30 characters }
+              </span>
+            }
+            <span class="form-hint">How the product is measured (e.g., each, kg, box, liter)</span>
+          </div>
+
+
+          <div class="form-field">
+            <label for="status" class="form-label">Status <span style="color:var(--color-error)">*</span></label>
+            <select
+              id="status"
+              class="form-select"
+              [class.is-invalid]="status?.invalid && status?.touched"
+              formControlName="status"
+            >
+              <option [value]="ProductStatus.ACTIVE">Active</option>
+              <option [value]="ProductStatus.DISCONTINUED">Discontinued</option>
+            </select>
+            @if (status?.invalid && status?.touched) {
+              <span class="form-error">Status is required</span>
+            }
+          </div>
+
+
+          <div style="display:flex;gap:var(--space-3);justify-content:flex-end;padding-top:var(--space-4);border-top:1px solid var(--color-border);">
+            <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="submitting()">Cancel</button>
+            <button type="submit" class="btn-accent" [disabled]="submitting() || productForm.invalid">
+              {{ submitting() ? 'Saving…' : (isEditMode() ? 'Update Product' : 'Create Product') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+
+      <div class="card-surface">
+        <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Help</h3>
+        <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+          <div>
+            <div style="font-weight:600;font-size:var(--font-size-sm);margin-bottom:var(--space-1);">SKU</div>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin:0;">
+              Stock Keeping Unit — a unique identifier for this product. Must be unique within your organization.
+            </p>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:var(--font-size-sm);margin-bottom:var(--space-1);">Unit of Measure</div>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin:0;">
+              How you count or measure this product. Common examples: each, kg, box, liter, dozen.
+            </p>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:var(--font-size-sm);margin-bottom:var(--space-1);">Status</div>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin:0;">
+              <strong>Active:</strong> Product is available for orders.<br>
+              <strong>Discontinued:</strong> Product is no longer available.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,142 @@
+<div class="page-container">
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading customer details…</span>
+    </div>
+  }
+
+  @if (!loading() && customer(); as customer) {
+
+    <div class="page-header">
+      <div>
+        <nav aria-label="breadcrumb" style="margin-bottom:var(--space-2);">
+          <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+            <a routerLink="/customers" style="color:var(--color-accent);">Customers</a>
+            &rsaquo; {{ customer.name }}
+          </span>
+        </nav>
+        <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;">
+          <h1 class="page-title">{{ customer.name }}</h1>
+          <app-status-badge [status]="customer.status.toLowerCase()" />
+        </div>
+      </div>
+      <div style="display:flex;gap:var(--space-2);">
+        <a [routerLink]="['/customers', customer.id, 'edit']" class="btn-accent">Edit</a>
+        <button class="btn-outline" style="color:var(--color-error);border-color:var(--color-error);" (click)="requestDelete()">Delete</button>
+      </div>
+    </div>
+
+
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:var(--space-6);align-items:start;">
+
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-6);">
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Contact Information</h3>
+          <div class="detail-grid">
+            <span class="detail-label">Name</span>
+            <strong>{{ customer.name }}</strong>
+
+            <span class="detail-label">Status</span>
+            <app-status-badge [status]="customer.status.toLowerCase()" />
+
+            <span class="detail-label">Email</span>
+            <span>
+              @if (customer.email) {
+                <a [href]="'mailto:' + customer.email" style="color:var(--color-accent);">{{ customer.email }}</a>
+              } @else {
+                <span style="color:var(--color-text-muted);">Not provided</span>
+              }
+            </span>
+
+            <span class="detail-label">Phone</span>
+            <span>
+              @if (customer.phone) {
+                <a [href]="'tel:' + customer.phone" style="color:var(--color-accent);">{{ customer.phone }}</a>
+              } @else {
+                <span style="color:var(--color-text-muted);">Not provided</span>
+              }
+            </span>
+
+            @if (customer.address) {
+              <span class="detail-label">Address</span>
+              <span>{{ customer.address }}</span>
+            }
+
+            @if (customer.notes) {
+              <span class="detail-label">Notes</span>
+              <span>{{ customer.notes }}</span>
+            }
+          </div>
+        </div>
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Metadata</h3>
+          <div class="detail-grid">
+            <span class="detail-label">Customer ID</span>
+            <code style="font-size:var(--font-size-xs);word-break:break-all;">{{ customer.id }}</code>
+
+            <span class="detail-label">Created At</span>
+            <span>{{ customer.createdAt | date:'medium' }}</span>
+
+            <span class="detail-label">Last Updated</span>
+            <span>{{ customer.updatedAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-6);">
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Quick Actions</h3>
+          <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+            <a [routerLink]="['/customers', customer.id, 'edit']" class="btn-outline" style="width:100%;text-align:left;">✏ Edit Customer</a>
+            <a [routerLink]="['/orders', 'new']" [queryParams]="{customerId: customer.id}" class="btn-outline" style="width:100%;text-align:left;">🛒 Create Order</a>
+            <a [routerLink]="['/orders']" [queryParams]="{customerId: customer.id}" class="btn-outline" style="width:100%;text-align:left;">📋 View Orders</a>
+            <button class="btn-outline" style="width:100%;text-align:left;color:var(--color-error);border-color:var(--color-error);" (click)="requestDelete()">
+              🗑 Delete Customer
+            </button>
+          </div>
+        </div>
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Contact</h3>
+          @if (customer.email || customer.phone) {
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+              @if (customer.email) {
+                <a [href]="'mailto:' + customer.email" class="btn-outline" style="width:100%;text-align:left;">✉ Send Email</a>
+              }
+              @if (customer.phone) {
+                <a [href]="'tel:' + customer.phone" class="btn-outline" style="width:100%;text-align:left;">📞 Call</a>
+              }
+            </div>
+          } @else {
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin:0;">
+              No contact information available. Add email or phone to enable quick contact.
+            </p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+
+  @if (pendingDelete()) {
+    <app-confirmation-dialog
+      title="Delete Customer"
+      [message]="'Are you sure you want to delete &quot;' + pendingDelete()!.name + '&quot;? This action cannot be undone.'"
+      confirmLabel="Delete"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
+  }
+</div>

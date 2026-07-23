@@ -1,0 +1,11 @@
+<nav class="quick-actions" aria-label="Quick actions">
+  @for (action of actions; track action.route) {
+    <a
+      [routerLink]="action.route"
+      class="btn-outline quick-actions__btn"
+      [attr.aria-label]="action.ariaLabel">
+      <i class="bi {{ action.icon }}" aria-hidden="true"></i>
+      <span>{{ action.label }}</span>
+    </a>
+  }
+</nav>

@@ -1,0 +1,66 @@
+<header class="top-bar" role="banner">
+
+  <button
+    type="button"
+    class="top-bar__menu-btn"
+    (click)="onMenuClick()"
+    aria-label="Open navigation menu"
+    aria-controls="sidebar">
+    <i class="bi bi-list" aria-hidden="true"></i>
+  </button>
+
+  <nav class="top-bar__breadcrumb" aria-label="Breadcrumb">
+    <ol class="breadcrumb-list">
+      @for (crumb of breadcrumbs(); track $index; let last = $last) {
+        <li class="breadcrumb-item" [class.breadcrumb-item--current]="last">
+          @if (!last && crumb.path) {
+            <a [routerLink]="crumb.path" class="breadcrumb-link">{{ crumb.label }}</a>
+          } @else {
+            <span [attr.aria-current]="last ? 'page' : null">{{ crumb.label }}</span>
+          }
+          @if (!last) {
+            <span class="breadcrumb-sep" aria-hidden="true">/</span>
+          }
+        </li>
+      }
+    </ol>
+  </nav>
+
+  <div class="top-bar__user">
+    @if (currentUser(); as user) {
+      <button
+        type="button"
+        class="top-bar__avatar-btn"
+        (click)="toggleDropdown()"
+        [attr.aria-expanded]="dropdownOpen()"
+        aria-haspopup="true"
+        aria-label="User menu">
+        <span class="top-bar__avatar" aria-hidden="true">{{ initials() }}</span>
+        <span class="top-bar__user-name">{{ user.firstName || user.email }}</span>
+        <i class="bi bi-chevron-down top-bar__chevron" aria-hidden="true"></i>
+      </button>
+
+      @if (dropdownOpen()) {
+        <div
+          class="top-bar__dropdown"
+          role="menu"
+          aria-label="User options">
+          <div class="top-bar__dropdown-header">
+            <div class="top-bar__dropdown-name">{{ user.firstName }} {{ user.lastName }}</div>
+            <div class="top-bar__dropdown-email">{{ user.email }}</div>
+          </div>
+          <hr class="top-bar__dropdown-divider" />
+          <button
+            type="button"
+            class="top-bar__dropdown-item"
+            role="menuitem"
+            (click)="logout()">
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+            Sign out
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+</header>

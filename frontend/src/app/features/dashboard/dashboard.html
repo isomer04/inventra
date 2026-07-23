@@ -1,0 +1,102 @@
+<div class="dashboard">
+
+
+  <div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <button
+      type="button"
+      class="btn-outline"
+      (click)="load()"
+      [disabled]="loading()"
+      aria-label="Refresh dashboard">
+      <i
+        class="bi"
+        [class.bi-arrow-clockwise]="!loading()"
+        [class.bi-hourglass-split]="loading()"
+        aria-hidden="true"></i>
+      {{ loading() ? 'Loading…' : 'Refresh' }}
+    </button>
+  </div>
+
+
+  @if (error()) {
+    <div class="dashboard__error" role="alert" aria-live="assertive">
+      <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+      <button type="button" class="btn-outline" (click)="load()">Retry</button>
+    </div>
+  }
+
+
+  @if (loading()) {
+    <div class="dashboard__loading card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading dashboard…</span>
+    </div>
+  } @else {
+    <div class="dashboard__kpi-row" role="region" aria-label="Key metrics">
+      <app-kpi-card
+        label="Total Products"
+        [value]="totalProducts()"
+        icon="bi-box"
+        trend="neutral"
+        [loading]="loading()"
+        [error]="null"
+        (retry)="load()">
+      </app-kpi-card>
+
+      <app-kpi-card
+        label="Inventory Value"
+        [value]="inventoryValue()"
+        icon="bi-currency-dollar"
+        trend="neutral"
+        [loading]="loading()"
+        [error]="null"
+        (retry)="load()">
+      </app-kpi-card>
+
+      <app-kpi-card
+        label="Open Orders"
+        [value]="openOrders()"
+        icon="bi-cart3"
+        trend="neutral"
+        [loading]="loading()"
+        [error]="null"
+        (retry)="load()">
+      </app-kpi-card>
+
+      <app-kpi-card
+        label="Active Customers"
+        [value]="totalCustomers()"
+        icon="bi-people"
+        trend="neutral"
+        [loading]="loading()"
+        [error]="null"
+        (retry)="load()">
+      </app-kpi-card>
+    </div>
+
+
+    <div class="dashboard__mid-row">
+      <div class="dashboard__chart-col">
+        <app-stock-health-chart
+          [data]="stockHealthSummary()"
+          [loading]="loading()">
+        </app-stock-health-chart>
+      </div>
+
+      <div class="dashboard__alerts-col">
+        <app-low-stock-alerts
+          [products]="data()?.lowStockItems ?? []"
+          [loading]="loading()">
+        </app-low-stock-alerts>
+      </div>
+    </div>
+
+
+    <app-recent-orders-table
+      [orders]="data()?.recentOrders ?? []">
+    </app-recent-orders-table>
+  }
+
+</div>

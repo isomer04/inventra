@@ -1,0 +1,23 @@
+<div class="chart-card">
+  <h2 class="chart-card__title">Stock Movements (30d)</h2>
+
+  @if (loading()) {
+    <div class="content-loading-state" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading stock movements chart…</span>
+    </div>
+  } @else if (!movements().length) {
+    <div class="chart-card__empty" role="status">
+      <i class="bi bi-arrow-left-right fs-2 text-muted"></i>
+      <p class="text-muted mt-2 mb-0">No stock movements in the last 30 days</p>
+    </div>
+  } @else {
+    <div class="chart-card__canvas" role="img" aria-label="Stacked bar chart showing stock movements by type over the last 30 days">
+      <canvas baseChart
+        [data]="chartData()"
+        [options]="chartOptions"
+        type="bar">
+      </canvas>
+    </div>
+  }
+</div>

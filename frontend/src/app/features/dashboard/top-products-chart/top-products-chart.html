@@ -1,0 +1,23 @@
+<div class="chart-card">
+  <h2 class="chart-card__title">Top 5 Products (30d)</h2>
+
+  @if (loading()) {
+    <div class="content-loading-state" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading top products chart…</span>
+    </div>
+  } @else if (!products().length) {
+    <div class="chart-card__empty" role="status">
+      <i class="bi bi-trophy fs-2 text-muted"></i>
+      <p class="text-muted mt-2 mb-0">No sales data in the last 30 days</p>
+    </div>
+  } @else {
+    <div class="chart-card__canvas" role="img" aria-label="Horizontal bar chart showing top 5 products by units sold">
+      <canvas baseChart
+        [data]="chartData()"
+        [options]="chartOptions"
+        type="bar">
+      </canvas>
+    </div>
+  }
+</div>

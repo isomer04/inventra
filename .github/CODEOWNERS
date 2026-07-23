@@ -1,0 +1,23 @@
+# CODEOWNERS — auto-requests review from the owner when a PR touches these paths.
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owner — reviews all PRs by default
+* @isomer04
+
+# Security-critical paths — always require owner review
+backend/src/main/java/com/inventra/api/security/ @isomer04
+backend/src/main/java/com/inventra/api/config/ @isomer04
+backend/src/main/resources/db/migration/ @isomer04
+backend/src/main/resources/db/seed/ @isomer04
+
+# Infrastructure
+docker-compose.prod.yml @isomer04
+frontend/nginx*.conf @isomer04
+frontend/Dockerfile @isomer04
+backend/Dockerfile @isomer04
+
+# GitHub config — changes here affect all workflows and protections
+.github/ @isomer04
+
+# Architecture decisions
+docs/adr/ @isomer04

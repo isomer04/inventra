@@ -1,0 +1,14 @@
+# Maven build output — rebuilt inside the image. Copying the host's target/ in
+# also risks shipping classes compiled by a different JDK than the build stage uses.
+target
+
+# Repo metadata and editor state
+.git
+.gitignore
+.vscode
+.idea
+*.log
+
+# Containerfiles themselves
+Dockerfile
+.dockerignore

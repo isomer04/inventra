@@ -1,0 +1,148 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <nav aria-label="breadcrumb" style="margin-bottom:var(--space-1);">
+        <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+          <a routerLink="/customers" style="color:var(--color-accent);">Customers</a>
+          &rsaquo; {{ isEditMode() ? 'Edit' : 'Add' }}
+        </span>
+      </nav>
+      <h1 class="page-title">{{ isEditMode() ? 'Edit Customer' : 'Add Customer' }}</h1>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading customer form…</span>
+    </div>
+  }
+
+  @if (!loading()) {
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:var(--space-6);align-items:start;">
+
+
+      <div class="card-surface">
+        <form [formGroup]="customerForm" (ngSubmit)="onSubmit()">
+
+
+          <div class="form-field">
+            <label for="name" class="form-label">Customer Name <span style="color:var(--color-error)">*</span></label>
+            <input
+              type="text"
+              id="name"
+              class="form-input"
+              [class.is-invalid]="name?.invalid && name?.touched"
+              formControlName="name"
+              placeholder="Enter customer name"
+            />
+            @if (name?.invalid && name?.touched) {
+              <span class="form-error">
+                @if (name?.errors?.['required']) { Customer name is required }
+                @if (name?.errors?.['maxlength']) { Name must be at most 200 characters }
+              </span>
+            }
+          </div>
+
+
+          <div class="form-field">
+            <label for="email" class="form-label">Email</label>
+            <input
+              type="email"
+              id="email"
+              class="form-input"
+              [class.is-invalid]="email?.invalid && email?.touched"
+              formControlName="email"
+              placeholder="customer@example.com"
+            />
+            @if (email?.invalid && email?.touched) {
+              <span class="form-error">
+                @if (email?.errors?.['email']) { Please enter a valid email address }
+                @if (email?.errors?.['maxlength']) { Email must be at most 150 characters }
+              </span>
+            }
+          </div>
+
+
+          <div class="form-field">
+            <label for="phone" class="form-label">Phone</label>
+            <input
+              type="tel"
+              id="phone"
+              class="form-input"
+              [class.is-invalid]="phone?.invalid && phone?.touched"
+              formControlName="phone"
+              placeholder="+1 (555) 123-4567"
+            />
+            @if (phone?.invalid && phone?.touched) {
+              <span class="form-error">
+                @if (phone?.errors?.['maxlength']) { Phone must be at most 30 characters }
+              </span>
+            }
+          </div>
+
+
+          <div class="form-field">
+            <label for="address" class="form-label">Address</label>
+            <textarea
+              id="address"
+              class="form-textarea"
+              formControlName="address"
+              rows="3"
+              placeholder="Enter customer address (optional)"
+            ></textarea>
+          </div>
+
+
+          <div class="form-field">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea
+              id="notes"
+              class="form-textarea"
+              formControlName="notes"
+              rows="3"
+              placeholder="Additional notes about this customer (optional)"
+            ></textarea>
+          </div>
+
+
+          <div class="form-field">
+            <label for="status" class="form-label">Status <span style="color:var(--color-error)">*</span></label>
+            <select
+              id="status"
+              class="form-select"
+              [class.is-invalid]="status?.invalid && status?.touched"
+              formControlName="status"
+            >
+              <option [value]="CustomerStatus.ACTIVE">Active</option>
+              <option [value]="CustomerStatus.INACTIVE">Inactive</option>
+            </select>
+            @if (status?.invalid && status?.touched) {
+              <span class="form-error">Status is required</span>
+            }
+          </div>
+
+
+          <div style="display:flex;gap:var(--space-3);justify-content:flex-end;padding-top:var(--space-4);border-top:1px solid var(--color-border);">
+            <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="submitting()">Cancel</button>
+            <button type="submit" class="btn-accent" [disabled]="submitting() || customerForm.invalid">
+              {{ submitting() ? 'Saving…' : (isEditMode() ? 'Update Customer' : 'Add Customer') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+
+      <div class="card-surface">
+        <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Customer Information</h3>
+        <div style="display:flex;flex-direction:column;gap:var(--space-4);font-size:var(--font-size-sm);color:var(--color-text-muted);">
+          <p style="margin:0;"><strong style="color:var(--color-text);">Name:</strong> Required. The customer's full name or company name.</p>
+          <p style="margin:0;"><strong style="color:var(--color-text);">Email &amp; Phone:</strong> Optional but recommended for communication.</p>
+          <p style="margin:0;"><strong style="color:var(--color-text);">Address:</strong> Optional. Useful for shipping and billing.</p>
+          <p style="margin:0;"><strong style="color:var(--color-text);">Status:</strong> Set to Inactive to prevent new orders from this customer.</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,40 @@
+<div class="stock-chart card-surface">
+  <h2 class="stock-chart__title">Stock Health</h2>
+
+  @if (loading()) {
+    <div class="content-loading-state" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading stock health…</span>
+    </div>
+  } @else if (!data() || total() === 0) {
+    <div class="stock-chart__empty">
+      <i class="bi bi-bar-chart" aria-hidden="true"></i>
+      <p>No stock data available</p>
+    </div>
+  } @else {
+    <!-- @let is Angular 18+ template syntax for local variable binding -->
+    @let d = data()!;
+    <div class="stock-chart__canvas-wrap">
+      <canvas
+        baseChart
+        [data]="chartData()"
+        [options]="chartOptions"
+        type="doughnut"
+        [attr.aria-label]="ariaLabel()"
+        role="img">
+      </canvas>
+    </div>
+    <!-- Text legend for accessibility — no color-only reliance -->
+    <ul class="stock-chart__legend" aria-hidden="true">
+      <li class="stock-chart__legend-item stock-chart__legend-item--in-stock">
+        In Stock: <strong>{{ d.inStock }}</strong>
+      </li>
+      <li class="stock-chart__legend-item stock-chart__legend-item--low-stock">
+        Low Stock: <strong>{{ d.lowStock }}</strong>
+      </li>
+      <li class="stock-chart__legend-item stock-chart__legend-item--out-of-stock">
+        Out of Stock: <strong>{{ d.outOfStock }}</strong>
+      </li>
+    </ul>
+  }
+</div>

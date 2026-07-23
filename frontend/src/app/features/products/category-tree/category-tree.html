@@ -1,0 +1,142 @@
+<div class="page-container">
+
+
+  <div class="page-header">
+    <h1 class="page-title">Categories</h1>
+    <div class="page-header-actions">
+      <a routerLink="/products" class="btn-outline">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        Back to Products
+      </a>
+      <button type="button" class="btn-accent" (click)="openCreateModal()">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        Add Category
+      </button>
+    </div>
+  </div>
+
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading categories…</span>
+    </div>
+  }
+
+
+  @if (!loading()) {
+    @if (flattenedCategories().length > 0) {
+      <div class="card-surface category-tree">
+        @for (node of flattenedCategories(); track node.id) {
+          <div class="category-item" [style.padding-left.rem]="node.level * 2 + 1">
+            <div class="category-item__info">
+              @if (node.level > 0) {
+                <i class="bi bi-arrow-return-right category-item__indent-icon" aria-hidden="true"></i>
+              }
+              <i
+                class="bi category-item__folder"
+                [class.bi-folder-fill]="node.children.length > 0"
+                [class.bi-folder]="node.children.length === 0"
+                aria-hidden="true"></i>
+              <span class="category-item__name">{{ node.name }}</span>
+              @if (node.children.length > 0) {
+                <span class="category-item__count">{{ node.children.length }}</span>
+              }
+            </div>
+            <div class="category-item__actions">
+              <button type="button" class="action-btn" (click)="openCreateModal(node.id)" title="Add subcategory" aria-label="Add subcategory to {{ node.name }}">
+                <i class="bi bi-plus" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="action-btn" (click)="openEditModal(node)" title="Edit" aria-label="Edit {{ node.name }}">
+                <i class="bi bi-pencil" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="action-btn action-btn--danger" (click)="requestDelete(node)" title="Delete" aria-label="Delete {{ node.name }}">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="card-surface">
+        <div class="table-empty-state">
+          <div class="empty-icon"><i class="bi bi-folder" aria-hidden="true"></i></div>
+          <div class="empty-title">No categories yet</div>
+          <div class="empty-desc">Create your first category to organise products.</div>
+          <button type="button" class="btn-accent" (click)="openCreateModal()" style="margin-top:var(--space-4)">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            Add Category
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+</div>
+
+
+@if (showModal()) {
+  <div class="dialog-backdrop" (click)="closeModal()" role="presentation"></div>
+  <div class="dialog" role="dialog" aria-modal="true" [attr.aria-labelledby]="'cat-modal-title'">
+    <div class="dialog__header">
+      <h2 id="cat-modal-title" class="dialog__title">
+        {{ isEditMode() ? 'Edit Category' : 'Create Category' }}
+      </h2>
+    </div>
+    <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+      <div class="dialog__body">
+
+        <div class="form-field">
+          <label class="form-label" for="categoryName">
+            Category Name <span style="color:var(--color-error)" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="categoryName"
+            class="form-input"
+            [class.is-invalid]="name?.invalid && name?.touched"
+            formControlName="name"
+            placeholder="Enter category name"
+            [attr.aria-invalid]="name?.invalid && name?.touched ? 'true' : null"
+          />
+          @if (name?.touched && name?.invalid) {
+            <span class="form-error" role="alert">
+              <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+              @if (name?.hasError('required')) { Category name is required }
+              @else if (name?.hasError('maxlength')) { Max 100 characters }
+            </span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="parentCategory">Parent Category</label>
+          <select id="parentCategory" class="form-select" formControlName="parentId">
+            <option value="">None (Root Category)</option>
+            @for (cat of getAvailableParents(editingCategoryId() || undefined); track cat.id) {
+              <option [value]="cat.id">{{ getCategoryPath(cat) }}</option>
+            }
+          </select>
+          <span class="form-hint">Optional — select a parent to create a subcategory</span>
+        </div>
+
+      </div>
+      <div class="dialog__footer">
+        <button type="button" class="btn-outline dialog__btn" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn-accent dialog__btn" [disabled]="categoryForm.invalid">
+          {{ isEditMode() ? 'Update' : 'Create' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+
+@if (pendingDeleteCategory(); as cat) {
+  <app-confirmation-dialog
+    title="Delete Category"
+    [message]="'Are you sure you want to delete \'' + cat.name + '\'? This cannot be undone.'"
+    confirmLabel="Delete"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()">
+  </app-confirmation-dialog>
+}

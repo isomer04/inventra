@@ -1,0 +1,35 @@
+<div
+  class="main-layout"
+  [class.main-layout--collapsed]="sidebarCollapsed()"
+  [class.main-layout--mobile-open]="mobileMenuOpen()">
+
+  @if (mobileMenuOpen()) {
+    <div
+      class="sidebar-overlay"
+      (click)="closeMobileMenu()"
+      aria-hidden="true">
+    </div>
+  }
+
+  <app-sidebar
+    class="layout-sidebar"
+    [collapsed]="sidebarCollapsed()"
+    (toggleCollapse)="toggleSidebar()"
+    (overlayClose)="closeMobileMenu()">
+  </app-sidebar>
+
+  <div class="layout-right">
+    <app-top-bar
+      class="layout-topbar"
+      (menuToggle)="toggleSidebar()">
+    </app-top-bar>
+
+    <main
+      class="layout-content"
+      id="main-content"
+      tabindex="-1">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+</div>

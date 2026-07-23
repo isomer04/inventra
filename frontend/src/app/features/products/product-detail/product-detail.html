@@ -1,0 +1,168 @@
+<div class="page-container">
+
+  @if (loading()) {
+    <div class="content-loading-state card-surface" role="status" aria-live="polite">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Loading product details…</span>
+    </div>
+  }
+
+  @if (!loading() && product(); as product) {
+
+    <div class="page-header">
+      <div>
+        <nav aria-label="breadcrumb" style="margin-bottom:var(--space-2);">
+          <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);">
+            <a routerLink="/products" style="color:var(--color-accent);">Products</a>
+            &rsaquo; {{ product.name }}
+          </span>
+        </nav>
+        <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;">
+          <h1 class="page-title">{{ product.name }}</h1>
+          <code style="font-size:var(--font-size-sm);color:var(--color-text-muted);">{{ product.sku }}</code>
+          <app-status-badge [status]="product.status.toLowerCase()" />
+          @if (isLowStock()) {
+            <span style="background:var(--color-warning-bg);color:var(--color-warning);padding:2px var(--space-3);border-radius:var(--radius-md);font-size:var(--font-size-xs);font-weight:600;">
+              ⚠ Low Stock
+            </span>
+          }
+        </div>
+      </div>
+      <div style="display:flex;gap:var(--space-2);">
+        <a [routerLink]="['/products', product.id, 'edit']" class="btn-accent">Edit</a>
+        <button class="btn-outline" style="color:var(--color-error);border-color:var(--color-error);"
+          (click)="requestDelete()">Delete</button>
+      </div>
+    </div>
+
+
+    @if (isLowStock() && inventory(); as inv) {
+      <div style="background:var(--color-warning-bg);color:var(--color-warning);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);margin-bottom:var(--space-6);font-size:var(--font-size-sm);">
+        <strong>Low Stock Alert:</strong> Available stock ({{ availableStock() }}) is at or below the reorder point ({{ inv.reorderPoint }}).
+      </div>
+    }
+
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:var(--space-6);align-items:start;">
+
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-6);">
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Product Information</h3>
+          <div class="detail-grid">
+            <span class="detail-label">SKU</span>
+            <span><code>{{ product.sku }}</code></span>
+
+            <span class="detail-label">Status</span>
+            <span><app-status-badge [status]="product.status.toLowerCase()" /></span>
+
+            <span class="detail-label">Category</span>
+            <span>
+              @if (category(); as cat) {
+                <a [routerLink]="['/products']" [queryParams]="{categoryId: cat.id}"
+                   style="color:var(--color-accent);">{{ cat.name }}</a>
+              } @else {
+                <span style="color:var(--color-text-muted);">No category</span>
+              }
+            </span>
+
+            <span class="detail-label">Unit of Measure</span>
+            <span>{{ product.unitOfMeasure }}</span>
+
+            <span class="detail-label">Unit Price</span>
+            <span style="font-weight:600;color:var(--color-success);">{{ product.unitPrice | currency }}</span>
+
+            <span class="detail-label">Created</span>
+            <span>{{ product.createdAt | date:'medium' }}</span>
+
+            @if (product.description) {
+              <span class="detail-label">Description</span>
+              <span>{{ product.description }}</span>
+            }
+          </div>
+        </div>
+
+
+        @if (inventory(); as inv) {
+          <div class="card-surface">
+            <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Inventory Status</h3>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);margin-bottom:var(--space-4);">
+              <div style="text-align:center;">
+                <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-1);">On Hand</div>
+                <div style="font-size:var(--font-size-2xl);font-weight:700;">{{ inv.quantityOnHand }}</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-1);">Reserved</div>
+                <div style="font-size:var(--font-size-2xl);font-weight:700;color:var(--color-warning);">{{ inv.quantityReserved }}</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-1);">Available</div>
+                <div style="font-size:var(--font-size-2xl);font-weight:700;"
+                  [style.color]="isLowStock() ? 'var(--color-error)' : 'var(--color-success)'">
+                  {{ availableStock() }}
+                </div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-1);">Reorder Pt.</div>
+                <div style="font-size:var(--font-size-2xl);font-weight:700;color:var(--color-text-muted);">{{ inv.reorderPoint }}</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:var(--space-2);">
+              <a [routerLink]="['/inventory']" [queryParams]="{productId: product.id}" class="btn-outline" style="font-size:var(--font-size-sm);">
+                Movement History
+              </a>
+              <a routerLink="/inventory" class="btn-outline" style="font-size:var(--font-size-sm);">
+                Receive Stock
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-6);">
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Quick Actions</h3>
+          <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+            <a [routerLink]="['/products', product.id, 'edit']" class="btn-outline" style="width:100%;text-align:left;">✏ Edit Product</a>
+            <a [routerLink]="['/orders', 'new']" [queryParams]="{productId: product.id}" class="btn-outline" style="width:100%;text-align:left;">🛒 Create Order</a>
+            <a [routerLink]="['/inventory']" [queryParams]="{productId: product.id}" class="btn-outline" style="width:100%;text-align:left;">📦 View Inventory</a>
+            <button class="btn-outline" style="width:100%;text-align:left;color:var(--color-error);border-color:var(--color-error);"
+              (click)="requestDelete()">🗑 Delete Product</button>
+          </div>
+        </div>
+
+
+        <div class="card-surface">
+          <h3 style="font-size:var(--font-size-base);font-weight:600;margin:0 0 var(--space-4);">Metadata</h3>
+          <div class="detail-grid">
+            <span class="detail-label">Product ID</span>
+            <code style="font-size:var(--font-size-xs);word-break:break-all;">{{ product.id }}</code>
+
+            <span class="detail-label">Created At</span>
+            <span>{{ product.createdAt | date:'medium' }}</span>
+
+            <span class="detail-label">Last Updated</span>
+            <span>{{ product.updatedAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  
+  @if (pendingDelete()) {
+    <app-confirmation-dialog
+      title="Delete Product"
+      [message]="'Are you sure you want to delete &quot;' + pendingDelete()!.name + '&quot;? This action cannot be undone.'"
+      confirmLabel="Delete"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
+  }
+</div>

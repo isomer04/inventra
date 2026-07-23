@@ -1,0 +1,251 @@
+<main id="main-content" tabindex="-1">
+<div class="signup-bg">
+  <div class="signup-card" role="region" aria-label="Create your Inventra workspace">
+
+
+    <div class="login-brand">
+      <i class="bi bi-box-seam login-brand__icon" aria-hidden="true"></i>
+      <h1 class="login-brand__name">Inventra</h1>
+      <p class="login-brand__tagline">Create your workspace</p>
+    </div>
+
+
+    @if (errorMessage()) {
+      <div class="login-alert" role="alert" aria-live="assertive">
+        <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" novalidate>
+
+
+      <div class="form-field">
+        <label class="form-label" for="companyName">
+          Company Name <span class="form-required" aria-hidden="true">*</span>
+        </label>
+        <input
+          type="text"
+          id="companyName"
+          class="form-input"
+          [class.is-invalid]="companyName?.invalid && companyName?.touched"
+          formControlName="companyName"
+          placeholder="e.g. Acme Corp"
+          autocomplete="organization"
+          [attr.aria-invalid]="companyName?.invalid && companyName?.touched ? 'true' : null"
+          [attr.aria-describedby]="companyName?.invalid && companyName?.touched ? 'companyName-error' : null"
+        />
+        @if (companyName?.touched && companyName?.invalid) {
+          <span id="companyName-error" class="form-error" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            @if (companyName?.hasError('required')) { Company name is required }
+            @else if (companyName?.hasError('minlength')) { At least 2 characters required }
+          </span>
+        }
+      </div>
+
+
+      <div class="form-field">
+        <label class="form-label" for="slug">
+          Workspace URL <span class="form-required" aria-hidden="true">*</span>
+        </label>
+        <div class="slug-input-group">
+          <span class="slug-prefix">inventra.app/</span>
+          <input
+            type="text"
+            id="slug"
+            class="form-input slug-input"
+            [class.is-invalid]="slug?.invalid && slug?.touched"
+            formControlName="slug"
+            placeholder="my-company"
+            autocomplete="off"
+            (input)="onSlugInput()"
+            (blur)="onSlugBlur()"
+            [attr.aria-invalid]="slug?.invalid && slug?.touched ? 'true' : null"
+            [attr.aria-describedby]="'slug-hint' + (slug?.invalid && slug?.touched ? ' slug-error' : '')"
+          />
+        </div>
+        <span id="slug-hint" class="form-hint">Lowercase letters, numbers, and hyphens only</span>
+        @if (slug?.touched && slug?.invalid) {
+          <span id="slug-error" class="form-error" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            @if (slug?.hasError('required')) { Workspace URL is required }
+            @else if (slug?.hasError('pattern')) { Only lowercase letters, numbers, and hyphens allowed }
+            @else if (slug?.hasError('taken')) { This workspace URL is already taken }
+          </span>
+        }
+      </div>
+
+
+      <div class="signup-name-row">
+        <div class="form-field">
+          <label class="form-label" for="firstName">
+            First Name <span class="form-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            class="form-input"
+            [class.is-invalid]="firstName?.invalid && firstName?.touched"
+            formControlName="firstName"
+            placeholder="Jane"
+            autocomplete="given-name"
+            [attr.aria-invalid]="firstName?.invalid && firstName?.touched ? 'true' : null"
+          />
+          @if (firstName?.touched && firstName?.hasError('required')) {
+            <span class="form-error" role="alert">First name is required</span>
+          }
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="lastName">
+            Last Name <span class="form-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            class="form-input"
+            [class.is-invalid]="lastName?.invalid && lastName?.touched"
+            formControlName="lastName"
+            placeholder="Doe"
+            autocomplete="family-name"
+            [attr.aria-invalid]="lastName?.invalid && lastName?.touched ? 'true' : null"
+          />
+          @if (lastName?.touched && lastName?.hasError('required')) {
+            <span class="form-error" role="alert">Last name is required</span>
+          }
+        </div>
+      </div>
+
+
+      <div class="form-field">
+        <label class="form-label" for="email">
+          Work Email <span class="form-required" aria-hidden="true">*</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          class="form-input"
+          [class.is-invalid]="email?.invalid && email?.touched"
+          formControlName="email"
+          placeholder="jane@company.com"
+          autocomplete="email"
+          [attr.aria-invalid]="email?.invalid && email?.touched ? 'true' : null"
+          [attr.aria-describedby]="email?.invalid && email?.touched ? 'email-error' : null"
+        />
+        @if (email?.touched && email?.invalid) {
+          <span id="email-error" class="form-error" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            @if (email?.hasError('required')) { Email is required }
+            @else if (email?.hasError('email')) { Please enter a valid email address }
+            @else if (email?.hasError('taken')) { An account with this email already exists }
+          </span>
+        }
+      </div>
+
+
+      <div class="form-field">
+        <label class="form-label" for="password">
+          Password <span class="form-required" aria-hidden="true">*</span>
+        </label>
+        <div class="input-group">
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            id="password"
+            class="form-input"
+            [class.is-invalid]="password?.invalid && password?.touched"
+            formControlName="password"
+            placeholder="At least 8 characters"
+            autocomplete="new-password"
+            [attr.aria-invalid]="password?.invalid && password?.touched ? 'true' : null"
+            [attr.aria-describedby]="'pwd-strength' + (password?.invalid && password?.touched ? ' password-error' : '')"
+          />
+          <button
+            type="button"
+            class="input-addon"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            [attr.aria-pressed]="showPassword()">
+            <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()" aria-hidden="true"></i>
+          </button>
+        </div>
+        @if (password?.touched && password?.invalid) {
+          <span id="password-error" class="form-error" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            @if (password?.hasError('required')) { Password is required }
+            @else if (password?.hasError('minlength')) { At least 8 characters required }
+          </span>
+        }
+
+        @if (password?.value) {
+          <div class="strength-meter" [attr.aria-label]="'Password strength: ' + passwordStrength.label">
+            <div
+              class="strength-meter__bar"
+              [class]="'strength-meter__bar--' + passwordStrength.label.toLowerCase()"
+              [style.width.%]="(passwordStrength.score / 5) * 100"
+              role="presentation">
+            </div>
+          </div>
+          <span id="pwd-strength" class="form-hint">
+            Strength: <strong [class]="'strength-label--' + passwordStrength.label.toLowerCase()">{{ passwordStrength.label }}</strong>
+          </span>
+        }
+      </div>
+
+
+      <div class="form-field">
+        <label class="form-label" for="confirmPassword">
+          Confirm Password <span class="form-required" aria-hidden="true">*</span>
+        </label>
+        <div class="input-group">
+          <input
+            [type]="showConfirmPassword() ? 'text' : 'password'"
+            id="confirmPassword"
+            class="form-input"
+            [class.is-invalid]="(confirmPassword?.invalid || signupForm.hasError('passwordMismatch')) && confirmPassword?.touched"
+            formControlName="confirmPassword"
+            placeholder="Re-enter your password"
+            autocomplete="new-password"
+            [attr.aria-invalid]="(confirmPassword?.invalid || signupForm.hasError('passwordMismatch')) && confirmPassword?.touched ? 'true' : null"
+            [attr.aria-describedby]="confirmPassword?.touched ? 'confirmPassword-error' : null"
+          />
+          <button
+            type="button"
+            class="input-addon"
+            (click)="toggleConfirmPasswordVisibility()"
+            [attr.aria-label]="showConfirmPassword() ? 'Hide confirm password' : 'Show confirm password'"
+            [attr.aria-pressed]="showConfirmPassword()">
+            <i class="bi" [class.bi-eye]="!showConfirmPassword()" [class.bi-eye-slash]="showConfirmPassword()" aria-hidden="true"></i>
+          </button>
+        </div>
+        @if (confirmPassword?.touched && (confirmPassword?.invalid || signupForm.hasError('passwordMismatch'))) {
+          <span id="confirmPassword-error" class="form-error" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            @if (confirmPassword?.hasError('required')) { Please confirm your password }
+            @else if (signupForm.hasError('passwordMismatch')) { Passwords do not match }
+          </span>
+        }
+      </div>
+
+
+      <button
+        type="submit"
+        class="btn-accent btn-block signup-submit"
+        [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Creating your workspace&hellip;
+        } @else {
+          Create Workspace
+        }
+      </button>
+
+    </form>
+
+    <p class="login-signup">
+      Already have an account?
+      <a routerLink="/login" class="login-signup__link">Sign in</a>
+    </p>
+
+  </div>
+</div>
+</main>

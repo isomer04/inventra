@@ -1,0 +1,46 @@
+# Development docker-compose — NOT for production use.
+# For production use docker-compose.prod.yml instead.
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-inventra}
+      MYSQL_USER: ${MYSQL_USER:-inventra}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-inventra}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${MYSQL_USER:-inventra} -p${MYSQL_PASSWORD:-inventra}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: ./backend
+    ports:
+      - "8081:8080"
+    environment:
+      DB_URL: ${DB_URL:-jdbc:mysql://mysql:3306/inventra?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-inventra}
+      DB_PASSWORD: ${DB_PASSWORD:-inventra}
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set — see .env.example}"
+      JWT_ACCESS_EXPIRY_MS: ${JWT_ACCESS_EXPIRY_MS:-900000}
+      JWT_REFRESH_EXPIRY_MS: ${JWT_REFRESH_EXPIRY_MS:-604800000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      # Always dev in this compose file — use docker-compose.prod.yml for production
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  mysql_data:

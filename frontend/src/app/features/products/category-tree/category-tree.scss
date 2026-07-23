@@ -1,0 +1,99 @@
+.page-header-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.category-tree {
+  padding: 0; // card-surface provides padding; we override for full-bleed rows
+  overflow: hidden;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  transition: background 150ms ease;
+  gap: var(--space-3);
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: var(--color-accent-subtle);
+
+    .category-item__actions { opacity: 1; }
+  }
+
+  &__info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__indent-icon {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+
+  &__folder {
+    font-size: 1.125rem;
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  &__name {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 var(--space-1);
+    border-radius: 9999px;
+    background: var(--color-gray-200);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-1);
+    opacity: 0;
+    transition: opacity 150ms ease;
+    flex-shrink: 0;
+  }
+}
+
+// Re-use action-btn from list pages
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 150ms ease;
+  font-size: 0.875rem;
+
+  &:hover { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-subtle); }
+  &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  &--danger:hover { border-color: var(--color-error); color: var(--color-error); background: var(--color-error-bg); }
+}
